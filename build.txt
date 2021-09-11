@@ -1,0 +1,3 @@
+displayName = SpikysMod
+author = Spiky
+version = 0.1
