@@ -8,7 +8,7 @@ using Terraria.ID;
 
 namespace SPYM {
     
-    public class InfiniteConsumables : GlobalItem {
+    public class SPGlobalItem : GlobalItem {
 
         public override void OnConsumeItem(Item item, Player player) {
             Item smallestStack = Utility.SmallestStack(item, player, true);

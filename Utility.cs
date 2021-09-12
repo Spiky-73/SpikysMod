@@ -3,6 +3,12 @@ using Terraria;
 namespace SPYM {
     public class Utility {
 
+        public static bool IsEquiped(int type, Player player){
+            foreach(Item i in player.armor){
+                if(i.type == type) return true;
+            }
+            return false;
+        }
         // Returns the last non held stack of a specified item from the player's inventory
         // Returns null if no stack satisfiy the above
         public static Item LastStack(Item item, Player player, bool notArg = false) {
@@ -23,7 +29,14 @@ namespace SPYM {
             }
 
             return currentMin;
-        }   
+        }
+
+        public static bool BossAlive() {
+            foreach (NPC npc in Main.npc){
+                if(npc.active && npc.boss) return true;
+            }
+            return false;
+        }
     }
 
 }
