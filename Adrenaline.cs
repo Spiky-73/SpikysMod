@@ -18,5 +18,9 @@ namespace SPYM {
             item.rare = ItemRarityID.Orange;
             item.value = Item.buyPrice(gold: 50);
         }
+
+        public override void UpdateAccessory(Player player, bool hideVisual) {
+            player.GetModPlayer<SPPlayer>().adrenaline = true;
+        }
     }
 }

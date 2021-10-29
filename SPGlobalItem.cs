@@ -1,24 +1,12 @@
 
 using Terraria;
-using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace SPYM {
     
     public class SPGlobalItem : GlobalItem {
-
         public override void SetDefaults(Item item){
 
-        }
-        public override bool UseItem(Item item, Player player){
-            switch (item.type){
-            case ItemID.GoldWatch: case ItemID.PlatinumWatch:
-                Main.time += 59; // 60
-            break;
-            default:
-                return false;
-            }
-            return true;
         }
 
         public override void OnConsumeItem(Item item, Player player) {
@@ -39,6 +27,10 @@ namespace SPYM {
                 ammo.stack++;
                 smallestAmmo.stack--;
             }
+        }
+
+        public static bool Equipable(Item item){
+            return item.headSlot > 0 || item.bodySlot > 0 || item.legSlot > 0 || item.accessory || Main.projHook[item.shoot] || item.mountType != -1 || (item.buffType > 0 && (Main.lightPet[item.buffType] || Main.vanityPet[item.buffType]));
         }
     }
 }
