@@ -99,7 +99,7 @@ namespace SPYM {
             Item temp = player.inventory[itemIndex];
             player.inventory[itemIndex] = player.HeldItem;
             for (int i = player.inventory.Length - 1; i >= 0 ; i--){
-                if(player.inventory[i].type != 0) continue;
+                if(player.inventory[i].IsAir) continue;
                 player.inventory[i] = temp;
                 Main.mouseItem.TurnToAir();
                 return;

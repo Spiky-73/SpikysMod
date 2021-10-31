@@ -2,7 +2,7 @@ using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace SPYM {
+namespace SPYM.Items {
     
 	public class Adrenaline : ModItem {
         public override void SetStaticDefaults() {
