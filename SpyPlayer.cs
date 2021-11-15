@@ -3,17 +3,19 @@ using Terraria.ModLoader;
 using Terraria.GameInput;
 using Terraria.UI;
 
+
 namespace SPYM {
 
-    public class SPPlayer : ModPlayer {
+    public class SpyPlayer : ModPlayer {
 
         private static bool [] defaultNoDisplay;
+        private bool releasedSwap;
+
+        public int radarLevel, analyserLevel, tallyLevel;
 
         public bool adrenaline;
 
-        private bool releasedSwap;
-
-        public SPPlayer (){
+        public SpyPlayer (){
             adrenaline = false;
             releasedSwap = true;
             // saves the value of the buffs
@@ -24,33 +26,39 @@ namespace SPYM {
             
         }
 
-        public override void PlayerDisconnect(Player player){
+        public override void PlayerDisconnect(Player Player){
             defaultNoDisplay.CopyTo(Main.buffNoTimeDisplay, 0);
         }
+		public override void ResetEffects() {
+            radarLevel = 0;
+            tallyLevel = 0;
+            analyserLevel = 0;
+		}
 
-        public override void PreUpdateBuffs() {
+		public override void PostUpdateBuffs() {
             ClientConfig config = ModContent.GetInstance<ClientConfig>();
 
-            for (int i = 0; i < player.buffType.Length; i++){
-                    int type = player.buffType[i];
-                    if(Main.debuff[type] || defaultNoDisplay[type]) continue;
-                    bool frozen = config.frozenBuffs && ((Utility.BossAlive() || NPC.BusyWithAnyInvasionOfSorts()) || adrenaline);
-                    if(frozen) {
-                        Main.buffNoTimeDisplay[type] = true;
-                        player.buffTime[i]++; // freeze the buff time
-                    }   else {
-                        Main.buffNoTimeDisplay[type] = defaultNoDisplay[type];
-                    }
+            for (int i = 0; i < Player.buffType.Length; i++){
+                int type = Player.buffType[i];
+                if(Main.debuff[type] || defaultNoDisplay[type]) continue;
+                bool frozen = config.frozenBuffs && ((Utility.BossAlive() || NPC.BusyWithAnyInvasionOfSorts()) || adrenaline);
+                if(frozen) {
+                    Main.buffNoTimeDisplay[type] = true;
+                    Player.buffTime[i] = 30*60; // freeze the buff time
+                }   else {
+                    Main.buffNoTimeDisplay[type] = defaultNoDisplay[type];
+                }
             }
             adrenaline = false; // Needs to be here because of update order
+
         }
+
         public override void ProcessTriggers(TriggersSet triggersSet){
-            
             if(Main.mouseRight && Main.mouseRightRelease
-                    && player.selectedItem < 10) { // Potential issue for accesories having a right click action
-                ItemSlot.SwapEquip(player.inventory, 0, player.selectedItem);
+                    && Player.selectedItem < 10) { // Potential issue for accesories having a right click action
+                ItemSlot.SwapEquip(Player.inventory, 0, Player.selectedItem);
 			}
-            if(SPYM.FavoritedBuff.JustPressed){
+            if(SpikysMod.FavoritedBuff.JustPressed){
                 FavoritedBuff();
             }
 
@@ -92,11 +100,11 @@ namespace SPYM {
         private void TrySwapHeld(int itemIndex){
 			if (!releasedSwap) return;
 			releasedSwap = false;
-            Item temp = player.inventory[itemIndex];
-            player.inventory[itemIndex] = player.HeldItem;
-            for (int i = player.inventory.Length - 1; i >= 0 ; i--){
-                if(!player.inventory[i].IsAir) continue;
-                player.inventory[i] = temp;
+            Item temp = Player.inventory[itemIndex];
+            Player.inventory[itemIndex] = Player.HeldItem;
+            for (int i = Player.inventory.Length - 1; i >= 0 ; i--){
+                if(!Player.inventory[i].IsAir) continue;
+                Player.inventory[i] = temp;
                 Main.mouseItem.TurnToAir();
                 return;
             }
@@ -104,11 +112,11 @@ namespace SPYM {
         }
 
         private void FavoritedBuff() {
-            Item[] inv = player.inventory;
-            for (int i = 0; i < player.inventory.Length - 1; i++) {
+            Item[] inv = Player.inventory;
+            for (int i = 0; i < Player.inventory.Length - 1; i++) {
                 if (!inv[i].favorited && inv[i].stack > 0) inv[i].stack *= -1;
             }
-            player.QuickBuff();
+            Player.QuickBuff();
             for (int i = 0; i < inv.Length - 1; i++) {
                 if (!inv[i].favorited && inv[i].stack < 0) inv[i].stack *= -1;
             }

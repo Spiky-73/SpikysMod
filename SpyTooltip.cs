@@ -1,18 +1,19 @@
 ﻿using Terraria;
 
-namespace SPYM.Items {
+namespace SPYM {
     public class SPTooltip {
 
 
         // ----- Vanilla Informational accessories
 
-        public const string Watch = "Use to speed up time";// Platinum / gold watch
-        public const string Radar = "Slightly increases spawn rates"; // Radar 
-        public const string TallyCounter = "Slightly increases item drop rates";
-        public const string LifeformAnalyzer = "Slightly increases spawn rates of rare ennemies";
-        public const string Stopwatch = "Increases max speed";
-        public const string WeatherRadio = "Prevent weather changes";
-        public const string Sextant = "Prevents moon phase changes";
+        public const string Watch = "Use to speed up time";
+        public const string Radar = "Slightly increases spawn rates";
+        public const string TallyCounter = "Slightly increases item drop rates"; // 1.4
+        public const string LifeformAnalyzer = "Slightly increases spawn rates of rare ennemies"; // Maybe sometihng else ?
+        public const string Stopwatch = "Increases max speed"; // 1.4
+        public const string MetalDetector = "Gives a spelunking glowstick effect"; // 1.4 ?
+        public const string WeatherRadio = "Prevent weather changes\nUse To trigger the rain"; // 1.4
+        public const string Sextant = "Prevents moon phase changes\nUse to change the moon style"; // 1.4
         public const string CellPhone = "TODO"; // same return potion
 
 
@@ -29,10 +30,10 @@ namespace SPYM.Items {
         public const string LifeformAnalyzer2 = "Greatly increases spawn rates of rare ennemies";
         public const string Stopwatch2 = "To infinity and beyond!";
         public const string MetalDetector2 = "Gives a spelunker effect";
-        public const string WeatherStation = "Allows ultimate control over the weather!\nRight click while holding to edit the weather"; // Rain, wind , storms
-        public const string UseStextant = "Use to cancel or start an event";
-        public const string Sextant2 = "Right click while holding to change the moon phase and current event"; // pre-harmdode event
-        public const string Sextant3 = "Allows ultimate control over the moon and events!"; // all events, add new ones as summoner items a added to inventory
+        public const string ControlStation = "Allows ultimate control over the weather and the moon!\nRight click while holding to edit control the weahter and the moon"; // Rain, wind , storms
+        public const string UseEvent = "Use to cancel or start an event";
+		public const string EventSummon = "Right click while holding to change the current event"; // pre-harmdode event
+		public const string EventSummon2 = "Allows ultimate control over events!"; // all events, add new ones as summoner items a added to inventory
     }
 
 }
