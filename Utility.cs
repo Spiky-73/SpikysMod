@@ -27,6 +27,10 @@ namespace SPYM {
             return currentMin;
         }
 
+        public static bool BusyWithInvasion() {
+            return Main.invasionType != 0;
+        }
+
         public static bool BossAlive() {
             foreach (NPC npc in Main.npc){
                 if(npc.active && npc.boss) return true;

@@ -1,59 +1,97 @@
 using Terraria;
-using Terraria.ModLoader;
 using Terraria.GameInput;
 using Terraria.UI;
-
+using Terraria.GameContent.Creative;
+using Terraria.ModLoader;
 
 namespace SPYM {
 
     public class SpyPlayer : ModPlayer {
 
-        private static bool [] defaultNoDisplay;
-        private bool releasedSwap;
-
-        public int radarLevel, analyserLevel, tallyLevel;
+        private bool [] changedBuffDisplays;
 
         public bool adrenaline;
 
+        private bool swapped;
+           
+        public bool weatherRadio;
+		private bool[] changedFrozenWeather;
+
+        public int stopWatchLevel;
+        public int radarLevel, analyserLevel, tallyLevel;
+
         public SpyPlayer (){
-            adrenaline = false;
-            releasedSwap = true;
+            changedFrozenWeather = new bool[2];
             // saves the value of the buffs
-            if(defaultNoDisplay == null) {
-                defaultNoDisplay = new bool[BuffLoader.BuffCount];
-                Main.buffNoTimeDisplay.CopyTo(defaultNoDisplay, 0);
-            }
-            
+            changedBuffDisplays = new bool[BuffLoader.BuffCount];
+            Main.buffNoTimeDisplay.CopyTo(changedBuffDisplays, 0);
         }
 
         public override void PlayerDisconnect(Player Player){
-            defaultNoDisplay.CopyTo(Main.buffNoTimeDisplay, 0);
+            for (int i = 0; i < changedBuffDisplays.Length; i++) {
+                if (changedBuffDisplays[i])
+                    Main.buffNoTimeDisplay[i] = false;
+            }
         }
 		public override void ResetEffects() {
             radarLevel = 0;
             tallyLevel = 0;
             analyserLevel = 0;
-		}
-
-		public override void PostUpdateBuffs() {
+            stopWatchLevel = 0;
+            weatherRadio = false;
+        }
+		public override void PreUpdateBuffs() {
             ClientConfig config = ModContent.GetInstance<ClientConfig>();
+
+            bool frozenBuffs = adrenaline || (config.frozenBuffs && (Utility.BossAlive() || Utility.BusyWithInvasion()));
 
             for (int i = 0; i < Player.buffType.Length; i++){
                 int type = Player.buffType[i];
-                if(Main.debuff[type] || defaultNoDisplay[type]) continue;
-                bool frozen = config.frozenBuffs && ((Utility.BossAlive() || NPC.BusyWithAnyInvasionOfSorts()) || adrenaline);
-                if(frozen) {
+                if(Main.debuff[type] || (Main.buffNoTimeDisplay[type] && !changedBuffDisplays[type])) continue;
+
+                if (frozenBuffs) {
+                    changedBuffDisplays[type] = true;
+                    Player.buffTime[i] = 30 * 60;
                     Main.buffNoTimeDisplay[type] = true;
-                    Player.buffTime[i] = 30*60; // freeze the buff time
-                }   else {
-                    Main.buffNoTimeDisplay[type] = defaultNoDisplay[type];
+				} else if (changedBuffDisplays[type]) {
+                    Main.buffNoTimeDisplay[type] = false;
+                    changedBuffDisplays[type] = false;
                 }
             }
             adrenaline = false; // Needs to be here because of update order
 
         }
+        public override void UpdateEquips() {
+			if (weatherRadio) {
+                if (!CreativePowerManager.Instance.GetPower<CreativePowers.FreezeRainPower>().Enabled)
+                    changedFrozenWeather[0] = true;
+                if (!CreativePowerManager.Instance.GetPower<CreativePowers.FreezeWindDirectionAndStrength>().Enabled)
+                    changedFrozenWeather[1] = true;
+                CreativePowerManager.Instance.GetPower<CreativePowers.FreezeRainPower>().SetPowerInfo(true);
+                CreativePowerManager.Instance.GetPower<CreativePowers.FreezeWindDirectionAndStrength>().SetPowerInfo(true);
+            }else {
+                if (changedFrozenWeather[0]) {
+                    CreativePowerManager.Instance.GetPower<CreativePowers.FreezeRainPower>().SetPowerInfo(false);
+                    changedFrozenWeather[0] = false;
+				}
+                if (changedFrozenWeather[1]) {
+                    changedFrozenWeather[1] = false;
+                    CreativePowerManager.Instance.GetPower<CreativePowers.FreezeWindDirectionAndStrength>().SetPowerInfo(false);
+                }
+            }
+            
+        }
 
-        public override void ProcessTriggers(TriggersSet triggersSet){
+		public override void PostUpdateRunSpeeds() {
+			switch (stopWatchLevel) {
+            case 1:
+                Player.maxRunSpeed *= 1.5f;
+				Player.accRunSpeed *= 1.5f;
+                //Player.runAcceleration *= 1.5f;
+				break;
+			}
+        }
+		public override void ProcessTriggers(TriggersSet triggersSet){
             if(Main.mouseRight && Main.mouseRightRelease
                     && Player.selectedItem < 10) { // Potential issue for accesories having a right click action
                 ItemSlot.SwapEquip(Player.inventory, 0, Player.selectedItem);
@@ -93,22 +131,30 @@ namespace SPYM {
                 else if(triggersSet.Hotbar10) {
                     TrySwapHeld(9);
                 }
-                else releasedSwap = true;
+                else swapped = false;
             }
         }
 
         private void TrySwapHeld(int itemIndex){
-			if (!releasedSwap) return;
-			releasedSwap = false;
-            Item temp = Player.inventory[itemIndex];
+			if (swapped) return;
+			swapped = true;
+            Item toSwap = Player.inventory[itemIndex];
             Player.inventory[itemIndex] = Player.HeldItem;
-            for (int i = Player.inventory.Length - 1; i >= 0 ; i--){
-                if(!Player.inventory[i].IsAir) continue;
-                Player.inventory[i] = temp;
-                Main.mouseItem.TurnToAir();
-                return;
-            }
-            Main.mouseItem = temp;
+
+            // Place to slot under mouse / of the item ????
+
+            for (int i = Player.inventory.Length-2; i >= 0; i--) {
+                if ((i == Player.inventory.Length - 1 && !toSwap.FitsAmmoSlot()) || (i == Player.inventory.Length - 5 && !toSwap.IsACoin)) {
+                    i -= 4;
+                    continue;
+                }
+                if (Player.inventory[i].IsAir) {
+                    Player.inventory[i] = toSwap;
+                    Main.mouseItem.TurnToAir();
+                    return;
+				}
+			}
+            Main.mouseItem = toSwap;
         }
 
         private void FavoritedBuff() {

@@ -7,19 +7,27 @@ namespace SPYM.NPCs {
 
 		public override void EditSpawnRate(Player player, ref int spawnRate, ref int maxSpawns) {
 			int level = player.GetModPlayer<SpyPlayer>().radarLevel;
-			if (level == 1) {
-				spawnRate = (int)(spawnRate / 3 );
-				maxSpawns = (int)(maxSpawns * 3 );
+			switch (level) {
+			case 1:
+				spawnRate = (int)(spawnRate / 2 );
+				maxSpawns = (int)(maxSpawns * 2 );
+				break;
+			case 2:
+				spawnRate = (int)(spawnRate / 5);
+				maxSpawns = (int)(maxSpawns * 5);
+				break;
+			case 3:
+				spawnRate = (int)(spawnRate / 10);
+				maxSpawns = (int)(maxSpawns * 10);
+				break;
 			}
 		}
 
-		public override void EditSpawnPool(IDictionary<int, float> pool, NPCSpawnInfo spawnInfo)  {
-			int level = spawnInfo.player.GetModPlayer<SpyPlayer>().analyserLevel;
-			NPC npc = new NPC();
-			//foreach(int type in pool.Keys){
-			//	npc.SetDefaults(type);
-			//	if (npc.rarity == 0) pool[type] = 0;
-			//}
-		}
+		//public override void ModifyNPCLoot(NPC npc, NPCLoot npcLoot) {
+
+		//}
+		//public override void EditSpawnPool(IDictionary<int, float> pool, NPCSpawnInfo spawnInfo)  {
+		//	int level = spawnInfo.player.GetModPlayer<SpyPlayer>().analyserLevel;
+		//}
 	}
 }
