@@ -1,15 +1,20 @@
 using Terraria.ModLoader;
 
-namespace SPYM
-{
-	public class SpikysMod : Mod {
+namespace SPYM;
 
-		internal static ModKeybind FavoritedBuff;
+public class SpikysMod : Mod {
 
-		public override void Load() {
+	public static SpikysMod Instance => s_instance.TryGetTarget(out SpikysMod? instance) ? instance : null!;
+#nullable disable
+	internal static ModKeybind FavoritedBuff;
+#nullable restore
+	public override void Load() {
+        s_instance.SetTarget(this);
 
-			FavoritedBuff = KeybindLoader.RegisterKeybind(this, "Favorited Quick buff", "N");
+        FavoritedBuff = KeybindLoader.RegisterKeybind(this, "Favorited Quick buff", "N");
 
-		}
 	}
+
+    private static readonly System.WeakReference<SpikysMod> s_instance = new(null!);
+
 }

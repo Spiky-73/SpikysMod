@@ -1,0 +1,72 @@
+{
+    Mods : {
+        SPYM : {
+            Tooltips : {
+                Watch: Use to speed up time
+                Radar: Slightly increases spawn rates
+                TallyCounter: Slightly increases item drop rates // TODO
+                LifeformAnalyzer: Slightly increases spawn rates of rare ennemies // TODO
+                Stopwatch: Increases movement speed
+                MetalDetector: Gives a spelunking glowstick effect
+                FishermanGuide: Maximizes fishing power
+                WeatherRadio:
+                    '''
+                    Prevent weather changes
+                    Use To toggle the rain
+                    '''
+                Sextant:
+                    '''
+                    Prevents moon phase changes
+                    Use to change the moon style
+                    '''
+                CellPhone: Leaves a portal to teleport back // TODO Wormhole Potion
+                
+                DPSMeter2: Gives the detailed stats of your character and DPS
+                HallowedWatch: Use to greatly speed up time
+                MatianWatch:
+                    '''
+                    Allows ultimate control over time!
+                    Use to edit the time
+                    Right Click to change between day and night
+                    Stops the time
+                    '''
+                LocatorAddMarker: Use on a tile to add a marker
+                Locator:
+                    '''
+                    Displays makers for interest points on the map
+                    Right click while holding to edit markers 
+                    ''' // TODO biome chest, plantera bulb, temple alter, ???
+                Locator2: Click on a marker to teleport to it
+                Radar2: Greatly increases spawn rate
+                Radar3:
+                    '''
+                    Massivelly increases spawn rate
+                    Just don't...
+                    '''
+                TallyCounter2: Greatly increases item drop rates
+                LifeformAnalyzer2: Greatly increases spawn rates of rare ennemies
+                Stopwatch2: To infinity and beyond!
+                MetalDetector2: Gives a spelunker and mining effect
+                ControlStation:
+                    '''
+                    Allows ultimate control over the weather and the moon!
+                    Right click while holding to edit control the weahter and the moon
+                    ''' // TODO Rain, wind , storms
+                UseEvent: Use to cancel or start an event
+                EventSummon: Right click while holding to change the current event // TODO pre-harmdode event
+                EventSummon2: Allows ultimate control over events! // TODO all events, add new ones as summoner items are added to inventory
+            }
+
+            Configs: {
+                Client: {
+                    smartConsume: Smart item consumption
+                    t_smartConsume: Consumes items from the smallest stack in the inventory
+                    smartAmmo: Smart ammo consumption
+                    t_smartAmmo: Consumes ammo from the last stack in the inventory
+                    frozenBuffs: Frozen buffs
+                    t_frozenBuffs: Freezes buffs duration during events or bosses
+                }
+            }
+        }
+    }
+}

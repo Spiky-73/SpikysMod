@@ -1,0 +1,20 @@
+{
+    "folders": [
+        {
+            "name": "SPYM",
+            "path": "."
+        }
+    ],
+    "settings": {
+        "extension-profiles.activeProfiles": [
+            "C#",
+            "Hjson",
+            "Git",
+            "Markdown"
+        ],
+        "todo-tree.tree.showBadges": true,
+        "todo-tree.tree.disableCompactFolders": true,
+        "todo-tree.tree.showCountsInTree": true,
+        "todo-tree.tree.scanMode": "workspace"
+    },
+}
