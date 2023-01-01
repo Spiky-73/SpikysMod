@@ -116,9 +116,13 @@ public class SpymItem : GlobalItem {
         case ItemID.WeatherRadio:
             spymPlayer.weatherRadio = true;
             break;
+        case ItemID.FishermansGuide:
+            spymPlayer.fishGuide = true;
+            break;
         case ItemID.Sextant:
             spymPlayer.sextant = true;
-            if(spymPlayer.moonPhase == -1) spymPlayer.moonPhase = Main.moonPhase;
+            if(spymPlayer.savedMoonPhase == -1) spymPlayer.savedMoonPhase = Main.moonPhase;
+            else if(Main.moonPhase != spymPlayer.savedMoonPhase) Main.moonPhase = spymPlayer.savedMoonPhase;
             break;
         }
     }
@@ -138,12 +142,10 @@ public class SpymItem : GlobalItem {
         if (Configs.ClientConfig.Instance.smartAmmo) SmartConsume(player, ammo, true);
     }
 
-    private static void ChangeRain() {
-        // TODO multiplayer
-        if (Main.raining)
-            Main.StopRain();
-        else
-            Main.StartRain();
+    public static void ChangeRain() {
+        // BUG wierd stuff on multi
+        if (Main.raining) Main.StopRain();
+        else Main.StartRain();
     }
 }
 

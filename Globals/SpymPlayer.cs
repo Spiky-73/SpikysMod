@@ -14,44 +14,55 @@ namespace SPYM.Globals;
 
 public class SpymPlayer : ModPlayer {
 
-    private readonly HashSet<int> hiddenBuffs = new();
+    private bool swappedHotBar;
+
 
     public bool adrenaline;
+    private readonly HashSet<int> hiddenBuffs = new();
 
-    private bool swapped;
-
-    public bool weatherRadio;
-    private readonly bool[] changedFrozenWeather = new bool[2];
 
     public int timeWarp;
 
     public float speedMult;
+
     public float spawnRateBoost;
 
-    public bool sextant = false;
-    public int moonPhase = -1;
+    public bool weatherRadio;
+
+    public bool fishGuide;
+
+    public bool sextant;
+    public int savedMoonPhase;
+
 
     public override void Load() {
         On.Terraria.Main.UpdateWeather += HookUpdateWeather;
+        On.Terraria.Player.Fishing_GetPowerMultiplier += HookGetPowerMultiplier;
+        On.Terraria.Projectile.GetFishingPondState += HookGetFishingPondState;
     }
+
+
+    private static float HookGetPowerMultiplier(On.Terraria.Player.orig_Fishing_GetPowerMultiplier orig, Player self, Item pole, Item bait) {
+        if(Main.LocalPlayer.GetModPlayer<SpymPlayer>().fishGuide) return 1.2f * 1.1f * 1.3f * 1.1f; // Not done with the tml hook to prevent other global items to edit the value (+/-)
+        return orig(self, pole, bait);
+    }
+
+    private void HookGetFishingPondState(On.Terraria.Projectile.orig_GetFishingPondState orig, int x, int y, out bool lava, out bool honey, out int numWaters, out int chumCount) {
+        orig(x, y, out lava, out honey, out numWaters, out chumCount);
+        if (Main.LocalPlayer.GetModPlayer<SpymPlayer>().fishGuide) numWaters = 300;
+    }
+
 
     private static void HookUpdateWeather(On.Terraria.Main.orig_UpdateWeather orig, Main self, GameTime gameTime) {
-        if(!Main.LocalPlayer.GetModPlayer<SpymPlayer>().weatherRadio) orig(self, gameTime);
+        if(!Main.LocalPlayer.GetModPlayer<SpymPlayer>().weatherRadio) orig(self, gameTime); // TODO muliplayer
     }
-
-    public override void PlayerDisconnect(Player Player) { // TODO not working in single player
-        foreach(int buff in hiddenBuffs){
-            Main.buffNoTimeDisplay[buff] = false;
-        }
-        hiddenBuffs.Clear();
-    }
-
 
     public override void ResetEffects() {
         timeWarp = 1;
         spawnRateBoost = 1;
         speedMult = 1;
         weatherRadio = false;
+        fishGuide = false;
         sextant = false;
 
         foreach (int buff in hiddenBuffs) Main.buffNoTimeDisplay[buff] = false;
@@ -76,32 +87,18 @@ public class SpymPlayer : ModPlayer {
 
     }
     public override void UpdateEquips() {
-        if (weatherRadio) {
-            if (!CreativePowerManager.Instance.GetPower<CreativePowers.FreezeRainPower>().Enabled)
-                changedFrozenWeather[0] = true;
-            if (!CreativePowerManager.Instance.GetPower<CreativePowers.FreezeWindDirectionAndStrength>().Enabled)
-                changedFrozenWeather[1] = true;
-            CreativePowerManager.Instance.GetPower<CreativePowers.FreezeRainPower>().SetPowerInfo(true);
-            CreativePowerManager.Instance.GetPower<CreativePowers.FreezeWindDirectionAndStrength>().SetPowerInfo(true);
-        } else {
-            if (changedFrozenWeather[0]) {
-                CreativePowerManager.Instance.GetPower<CreativePowers.FreezeRainPower>().SetPowerInfo(false);
-                changedFrozenWeather[0] = false;
-            }
-            if (changedFrozenWeather[1]) {
-                changedFrozenWeather[1] = false;
-                CreativePowerManager.Instance.GetPower<CreativePowers.FreezeWindDirectionAndStrength>().SetPowerInfo(false);
-            }
-        }
-        if(sextant) {
-            if(moonPhase != -1 && Main.moonPhase != moonPhase) Main.moonPhase = moonPhase;
-        }else moonPhase = -1;
-
+        if (!sextant) savedMoonPhase = -1;
     }
 
     public override void PostUpdateRunSpeeds() {
         Player.maxRunSpeed *= speedMult;
-        Player.accRunSpeed *= speedMult; // TODO wing accend rate
+        Player.accRunSpeed *= speedMult;
+
+        Player.jumpSpeed *= MathF.Sqrt(speedMult);
+        Player.jumpSpeedBoost *= speedMult;
+        
+        Player.maxFallSpeed *= speedMult;
+        Player.gravity *= speedMult;
     }
 
     public override void ProcessTriggers(TriggersSet triggersSet) {
@@ -122,13 +119,13 @@ public class SpymPlayer : ModPlayer {
             else if (triggersSet.Hotbar9)  slot = 8;
             else if (triggersSet.Hotbar10) slot = 9;
 
-            if(slot == -1) swapped = false;
-            else if(!swapped) SwapHeld(slot);
+            if(slot == -1) swappedHotBar = false;
+            else if(!swappedHotBar) SwapHeld(slot);
         }
     }
 
     private void SwapHeld(int itemIndex) {
-        swapped = true;
+        swappedHotBar = true;
         Item toSwap = Player.inventory[itemIndex];
         Player.inventory[itemIndex] = Player.HeldItem;
 
@@ -149,6 +146,7 @@ public class SpymPlayer : ModPlayer {
         Main.mouseItem = toSwap;
         SoundEngine.PlaySound(SoundID.Grab);
     }
+
 
     private void FavoritedBuff() {
         Item[] inv = Player.inventory;
