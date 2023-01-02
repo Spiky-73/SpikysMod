@@ -4,8 +4,7 @@ using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.Localization;
-using Terraria.UI;
-using System;
+
 
 namespace SPYM.Globals;
 
@@ -56,6 +55,9 @@ public class SpymItem : GlobalItem {
             break;
         case ItemID.WeatherRadio:
             keys.Add("WeatherRadio");
+            break;
+        case ItemID.FishermansGuide:
+            keys.Add("FishGuide");
             break;
         case ItemID.Sextant:
             keys.Add("Sextant");

@@ -4,22 +4,26 @@
             Tooltips : {
                 Watch: Use to speed up time
                 Radar: Slightly increases spawn rates
-                TallyCounter: Slightly increases item drop rates // TODO impl
-                LifeformAnalyzer: Slightly increases spawn rates of rare ennemies // TODO impl
+                TallyCounter: Slightly increases item drop rates // TODO >>> impl
+                LifeformAnalyzer: Slightly increases spawn rates of rare ennemies // TODO >>> impl
                 Stopwatch: Increases movement speed
                 MetalDetector: Gives a spelunking glowstick effect
-                FishGuide: Maximizes fishing power gain with the environment // TODO impl
+                FishGuide: Maximizes fishing power gain with the environment
                 WeatherRadio:
                     '''
                     Prevent weather changes
-                    Use To toggle the rain
+                    Use to toggle the rain
                     '''
                 Sextant:
                     '''
                     Prevents moon phase changes
                     Use to change the moon style
                     '''
-                CellPhone: Leaves a portal to teleport back // TODO >>> Wormhole Potion, conches
+                CellPhone:
+                    '''
+                    Leaves a portal to teleport back
+                    Click the head of your party members on the fullscreen map to teleport to them
+                    '''
                 
                 DPSMeter2: Gives the detailed stats of your character and DPS
                 HallowedWatch: Use to greatly speed up time
@@ -35,7 +39,7 @@
                     '''
                     Displays makers for interest points on the map
                     Right click while holding to edit markers 
-                    ''' // TODO biome chest, plantera bulb, temple alter, ???
+                    ''' // ? biome chest, plantera bulb, temple alter, etc
                 Locator2: Click on a marker to teleport to it
                 Radar2: Greatly increases spawn rate
                 Radar3:
@@ -51,10 +55,10 @@
                     '''
                     Allows ultimate control over the weather and the moon!
                     Right click while holding to edit control the weahter and the moon
-                    ''' // TODO Rain, wind , storms
+                    ''' // ? Rain, wind , storms
                 UseEvent: Use to cancel or start an event
-                EventSummon: Right click while holding to change the current event // TODO pre-harmdode event
-                EventSummon2: Allows ultimate control over events! // TODO all events, add new ones as summoner items are added to inventory
+                EventSummon: Right click while holding to change the current event // ? pre-harmdode event
+                EventSummon2: Allows ultimate control over events! // ? all events, add new ones as summoner items are added to inventory
             }
 
             Configs: {

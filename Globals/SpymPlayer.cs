@@ -1,6 +1,5 @@
 using Terraria;
 using Terraria.GameInput;
-using Terraria.GameContent.Creative;
 using Terraria.ModLoader;
 using SPYM.Configs;
 using System.Collections.Generic;
@@ -9,8 +8,11 @@ using Terraria.ID;
 using Terraria.UI;
 using Microsoft.Xna.Framework;
 using System;
+using Terraria.Graphics.Capture;
 
 namespace SPYM.Globals;
+
+// TODO reoganise in update order
 
 public class SpymPlayer : ModPlayer {
 
@@ -34,11 +36,26 @@ public class SpymPlayer : ModPlayer {
     public bool sextant;
     public int savedMoonPhase;
 
+    public int slot;
+
 
     public override void Load() {
         On.Terraria.Main.UpdateWeather += HookUpdateWeather;
         On.Terraria.Player.Fishing_GetPowerMultiplier += HookGetPowerMultiplier;
         On.Terraria.Projectile.GetFishingPondState += HookGetFishingPondState;
+        On.Terraria.Player.HasUnityPotion += HookHasUnityPotion;
+        On.Terraria.Player.TakeUnityPotion += HookTakeUnityPotion;
+
+    }
+
+    private static bool HookHasUnityPotion(On.Terraria.Player.orig_HasUnityPotion orig, Player self) {
+        if(self.HasItem(ItemID.CellPhone)) return true;
+        return orig(self);
+    }
+
+    private static void HookTakeUnityPotion(On.Terraria.Player.orig_TakeUnityPotion orig, Player self){
+        if(self.HasItem(ItemID.CellPhone)) return;
+        orig(self);
     }
 
 
@@ -54,7 +71,8 @@ public class SpymPlayer : ModPlayer {
 
 
     private static void HookUpdateWeather(On.Terraria.Main.orig_UpdateWeather orig, Main self, GameTime gameTime) {
-        if(!Main.LocalPlayer.GetModPlayer<SpymPlayer>().weatherRadio) orig(self, gameTime); // TODO muliplayer
+        // BUG wierd stuff on multi
+        if(!Main.LocalPlayer.GetModPlayer<SpymPlayer>().weatherRadio) orig(self, gameTime);
     }
 
     public override void ResetEffects() {
@@ -102,7 +120,7 @@ public class SpymPlayer : ModPlayer {
     }
 
     public override void ProcessTriggers(TriggersSet triggersSet) {
-        if (Main.mouseRight && Main.mouseRightRelease && Player.altFunctionUse == 0) ItemSlot.RightClick(Player.inventory, 0, Player.selectedItem);
+        // if(Main.mouseRight && Main.stackSplit == 0) Main.mouseRightRelease = true;
 
         if (SpikysMod.FavoritedBuff.JustPressed) FavoritedBuff();
 
@@ -122,6 +140,19 @@ public class SpymPlayer : ModPlayer {
             if(slot == -1) swappedHotBar = false;
             else if(!swappedHotBar) SwapHeld(slot);
         }
+    }
+
+    public override bool PreItemCheck(){
+        bool canRightClick = Player.controlUseTile && !Player.tileInteractionHappened && Player.releaseUseItem && !Player.controlUseItem && !Player.mouseInterface && !CaptureManager.Instance.Active && !Main.HoveringOverAnNPC && !Main.SmartInteractShowingGenuine;
+        if (canRightClick && Main.HoverItem.IsAir && Player.altFunctionUse == 0 && (slot != -1 || Player.selectedItem < 10)) {
+            if (slot == -1) slot = Player.selectedItem;
+            ItemSlot.RightClick(Player.inventory, 0, slot);
+            if (!Main.mouseItem.IsAir) Player.DropSelectedItem();
+            return false;
+        }
+
+        slot = -1;
+        return true;
     }
 
     private void SwapHeld(int itemIndex) {
