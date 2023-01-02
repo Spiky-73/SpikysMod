@@ -45,7 +45,19 @@ public class SpymPlayer : ModPlayer {
         On.Terraria.Projectile.GetFishingPondState += HookGetFishingPondState;
         On.Terraria.Player.HasUnityPotion += HookHasUnityPotion;
         On.Terraria.Player.TakeUnityPotion += HookTakeUnityPotion;
+        On.Terraria.UI.ItemSlot.RightClick_FindSpecialActions += HookRightClickPlus;
 
+    }
+
+    private static bool HookRightClickPlus(On.Terraria.UI.ItemSlot.orig_RightClick_FindSpecialActions orig, Item[] inv, int context, int slot, Player player) {
+        bool mRR = Main.mouseRightRelease;
+        int stack = Main.stackSplit;
+        bool res = orig(inv, context, slot, player);
+        if (Main.mouseRightRelease != mRR && mRR) {
+            Main.stackSplit = stack;
+            ItemSlot.RefreshStackSplitCooldown();
+        }
+        return res;
     }
 
     private static bool HookHasUnityPotion(On.Terraria.Player.orig_HasUnityPotion orig, Player self) {
@@ -120,7 +132,7 @@ public class SpymPlayer : ModPlayer {
     }
 
     public override void ProcessTriggers(TriggersSet triggersSet) {
-        // if(Main.mouseRight && Main.stackSplit == 0) Main.mouseRightRelease = true;
+        if(Main.mouseRight && Main.stackSplit == 1) Main.mouseRightRelease = true;
 
         if (SpikysMod.FavoritedBuff.JustPressed) FavoritedBuff();
 
