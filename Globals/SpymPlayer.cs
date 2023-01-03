@@ -36,7 +36,7 @@ public class SpymPlayer : ModPlayer {
     public bool sextant;
     public int savedMoonPhase;
 
-    public int slot;
+    public int rightClickedSlot;
 
 
     public override void Load() {
@@ -136,7 +136,7 @@ public class SpymPlayer : ModPlayer {
 
         if (SpikysMod.FavoritedBuff.JustPressed) FavoritedBuff();
 
-        if (Main.playerInventory && !Main.mouseItem.IsAir) {
+        if (Main.playerInventory && (!Main.HoverItem.IsAir || !Main.mouseItem.IsAir)) {
             int slot = -1;
             if (triggersSet.Hotbar1)       slot = 0;
             else if (triggersSet.Hotbar2)  slot = 1;
@@ -150,43 +150,30 @@ public class SpymPlayer : ModPlayer {
             else if (triggersSet.Hotbar10) slot = 9;
 
             if(slot == -1) swappedHotBar = false;
-            else if(!swappedHotBar) SwapHeld(slot);
+            else if(!swappedHotBar) {
+                swappedHotBar = true;
+                SwapHeld(slot);
+            }
         }
     }
 
     public override bool PreItemCheck(){
         bool canRightClick = Player.controlUseTile && !Player.tileInteractionHappened && Player.releaseUseItem && !Player.controlUseItem && !Player.mouseInterface && !CaptureManager.Instance.Active && !Main.HoveringOverAnNPC && !Main.SmartInteractShowingGenuine;
-        if (canRightClick && Main.HoverItem.IsAir && Player.altFunctionUse == 0 && (slot != -1 || Player.selectedItem < 10)) {
-            if (slot == -1) slot = Player.selectedItem;
-            ItemSlot.RightClick(Player.inventory, 0, slot);
+        if (canRightClick && Main.HoverItem.IsAir && Player.altFunctionUse == 0 && (rightClickedSlot != -1 || Player.selectedItem < 10)) {
+            if (rightClickedSlot == -1) rightClickedSlot = Player.selectedItem;
+            ItemSlot.RightClick(Player.inventory, 0, rightClickedSlot);
             if (!Main.mouseItem.IsAir) Player.DropSelectedItem();
             return false;
         }
 
-        slot = -1;
+        rightClickedSlot = -1;
         return true;
     }
 
-    private void SwapHeld(int itemIndex) {
-        swappedHotBar = true;
-        Item toSwap = Player.inventory[itemIndex];
-        Player.inventory[itemIndex] = Player.HeldItem;
-
-        // TODO Place to slot under mouse / of the item
-        // ? Use Player.GetItem()
-        for (int i = Player.inventory.Length - 2; i >= 0; i--) {
-            if ((i == Player.inventory.Length - 2 && !toSwap.FitsAmmoSlot()) || (i == Player.inventory.Length - 6 && !toSwap.IsACoin)) {
-                i -= 3;
-                continue;
-            }
-            if (Player.inventory[i].IsAir) {
-                Player.inventory[i] = toSwap;
-                Main.mouseItem.TurnToAir();
-                SoundEngine.PlaySound(SoundID.Grab);
-                return;
-            }
-        }
-        Main.mouseItem = toSwap;
+    private void SwapHeld(int destSlot) {
+        int sourceSlot = !Main.mouseItem.IsAir ? 58 : Array.FindIndex(Player.inventory, i => i.type == Main.HoverItem.type && i.stack == Main.HoverItem.stack && i.prefix == Main.HoverItem.prefix);
+        (Player.inventory[destSlot], Player.inventory[sourceSlot]) = (Player.inventory[sourceSlot], Player.inventory[destSlot]);
+        if(sourceSlot == 58) Main.mouseItem = Player.inventory[sourceSlot].Clone();
         SoundEngine.PlaySound(SoundID.Grab);
     }
 
