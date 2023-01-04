@@ -90,7 +90,7 @@ public class SpymItem : GlobalItem {
         SpymPlayer spymPlayer = player.GetModPlayer<SpymPlayer>();
         switch (item.type) {
         case ItemID.GoldWatch or ItemID.PlatinumWatch:
-            spymPlayer.timeWarp = 20;
+            spymPlayer.timeWarp = 10;
             break;
         case ItemID.CellPhone:
             if (player.itemTime == player.itemTimeMax / 2 + 1)
@@ -106,7 +106,7 @@ public class SpymItem : GlobalItem {
             spymPlayer.spawnRateBoost = 2.5f;
             break;
         case ItemID.Stopwatch:
-            spymPlayer.speedMult = 2.5f;
+            spymPlayer.speedMult = 1.5f;
             break;
         case ItemID.MetalDetector:
             if (player.HeldItem.type == ItemID.SpelunkerGlowstick) break;
