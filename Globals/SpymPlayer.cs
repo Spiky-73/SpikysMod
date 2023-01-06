@@ -20,13 +20,11 @@ public class SpymPlayer : ModPlayer {
 
     private bool swappedHotBar;
 
-
-    public bool adrenaline;
     private readonly HashSet<int> hiddenBuffs = new();
 
     public bool dpsMeter;
 
-    public int timeWarp;
+    public float timeWarp;
 
     public float speedMult;
 
@@ -97,8 +95,7 @@ public class SpymPlayer : ModPlayer {
 
 
     public override void PreUpdateBuffs() {
-
-        if (adrenaline || (ClientConfig.Instance.frozenBuffs && (Utility.BossAlive() || Utility.BusyWithInvasion()))) {
+        if (ClientConfig.Instance.frozenBuffs && (Utility.BossAlive() || Utility.BusyWithInvasion())) {
             for (int i = 0; i < Player.buffType.Length; i++) {
                 int buff = Player.buffType[i];
                 if (Main.debuff[buff] || Main.buffNoTimeDisplay[buff]) continue;
@@ -108,8 +105,6 @@ public class SpymPlayer : ModPlayer {
                 Player.buffTime[i] += 1;
             }
         }
-
-        adrenaline = false; // Needs to be here because of update order
     }
 
     public override void UpdateEquips() {

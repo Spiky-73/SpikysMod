@@ -19,7 +19,7 @@ public class SpymSystem : ModSystem {
     }
 
     public override void ModifyTimeRate(ref double timeRate, ref double tileUpdateRate, ref double eventUpdateRate) {
-        // // TODO multiplayer
+        // TODO multiplayer
         float mult = Main.LocalPlayer.GetModPlayer<Globals.SpymPlayer>().timeWarp;
         timeRate *= mult;
         tileUpdateRate *= mult;
@@ -45,7 +45,7 @@ public class SpymSystem : ModSystem {
                     else count = MathF.Ceiling(count);
                     Recipe.Create(rate.itemId, (rate.stackMin + rate.stackMax) / 2)
                         .AddIngredient(banner, (int)count)
-                        .AddTile(TileID.TinkerersWorkbench)
+                        .AddTile(TileID.TinkerersWorkbench) // TODO Progression scaling
                         .Register();
                     if(!addedRecipes.ContainsKey(banner)) addedRecipes[banner] = new();
                     addedRecipes[banner].Add(rate.itemId);

@@ -33,44 +33,45 @@ public class SpymItem : GlobalItem {
     }
 
     public override void ModifyTooltips(Item item, List<TooltipLine> tooltips) {
-        List<string> keys = new(); // ? cache
+        List<(string, object[]?)> keys = new(); // ? cache
         switch (item.type) {
         case ItemID.GoldWatch or ItemID.PlatinumWatch:
-            keys.Add("Watch");
+            keys.Add(("Watch", null));
             break;
         case ItemID.Radar:
-            keys.Add("Radar");
+            keys.Add(("Radar", null));
             break;
         case ItemID.TallyCounter:
-            keys.Add("TallyCounter");
+            keys.Add(("TallyCounter", null));
             break;
         case ItemID.LifeformAnalyzer:
-            keys.Add("LifeformAnalyzer");
+            keys.Add(("LifeformAnalyzer", null));
             break;
         case ItemID.Stopwatch:
-            keys.Add("Stopwatch");
+            keys.Add(("Stopwatch", null));
             break;
         case ItemID.MetalDetector:
-            keys.Add("MetalDetector");
+            keys.Add(("MetalDetector", null));
             break;
         case ItemID.DPSMeter:
-            keys.Add("DPSMeter");
+            keys.Add(("DPSMeter", null));
+            keys.Add(("multiplicative", new object[]{5}));
             break;
         case ItemID.WeatherRadio:
-            keys.Add("WeatherRadio");
+            keys.Add(("WeatherRadio", null));
             break;
         case ItemID.FishermansGuide:
-            keys.Add("FishGuide");
+            keys.Add(("FishGuide", null));
             break;
         case ItemID.Sextant:
-            keys.Add("Sextant");
+            keys.Add(("Sextant", null));
             break;
         case ItemID.CellPhone:
-            keys.Add("CellPhone");
+            keys.Add(("CellPhone", null));
             break;
         }
 
-        foreach (string key in keys) tooltips.AddLine(new(SpikysMod.Instance, key.ToUpperInvariant(), Language.GetTextValue("Mods.SPYM.Tooltips." + key)), TooltipLineID.Tooltip);
+        foreach ((string key, object[]? args) in keys) tooltips.AddLine(new(SpikysMod.Instance, key.ToUpperInvariant(), args is null ? Language.GetTextValue("Mods.SPYM.Tooltips") : Language.GetTextValue("Mods.SPYM.Tooltips." + key, args)), TooltipLineID.Tooltip);
     }
 
     public override bool? UseItem(Item item, Player player) {
@@ -93,7 +94,7 @@ public class SpymItem : GlobalItem {
         SpymPlayer spymPlayer = player.GetModPlayer<SpymPlayer>();
         switch (item.type) {
         case ItemID.GoldWatch or ItemID.PlatinumWatch:
-            spymPlayer.timeWarp = 10;
+            spymPlayer.timeWarp *= 10;
             break;
         case ItemID.CellPhone:
             if (player.itemTime == player.itemTimeMax / 2 + 1)
@@ -105,6 +106,9 @@ public class SpymItem : GlobalItem {
     public override void UpdateEquip(Item item, Player player) {
         SpymPlayer spymPlayer = player.GetModPlayer<SpymPlayer>();
         switch (item.type) {
+        case ItemID.GoldWatch or ItemID.PlatinumWatch:
+            spymPlayer.timeWarp *= 0.9f;
+            break;
         case ItemID.Radar:
             spymPlayer.spawnRateBoost += 1.5f;
             break;
@@ -116,7 +120,7 @@ public class SpymItem : GlobalItem {
             break; 
         case ItemID.DPSMeter:
             spymPlayer.dpsMeter = true;
-            player.GetDamage(DamageClass.Generic) *= 1.10f;
+            player.GetDamage(DamageClass.Generic) *= 1.05f;
             break;
         case ItemID.MetalDetector:
             if (player.HeldItem.type == ItemID.SpelunkerGlowstick) break;

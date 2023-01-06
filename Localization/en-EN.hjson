@@ -2,45 +2,52 @@
     Mods : {
         SPYM : {
             Tooltips : {
-                Watch: Use to speed up time
+                Watch:
+                    '''
+                    Use to speed up time
+                    Slightly slows down time
+                    '''
                 Radar: Slightly increases spawn rates
                 TallyCounter: Increases item drop rates of rare items
                 LifeformAnalyzer: Slightly increases spawn rates of rare ennemies // TODO impl
                 Stopwatch: Increases movement speed
-                // TODO impl: left click (or right click when holding a tool) to select a rare tile. Shows the distance to the closest of those tiles (in ranges), ?+10% mining speed 
+                // TODO impl: left click (or right click when holding a tool) to select a rare tile. Shows the distance to the closest of those tiles (in ranges)
                 MetalDetector: Gives a spelunking glowstick effect
                 FishGuide: Maximizes fishing power gain with the environment
                 WeatherRadio:
                     '''
-                    Prevent weather changes
                     Use to toggle the rain
+                    Prevent weather changes
                     '''  // TODO redo
                 Sextant:
                     '''
+                    Use to change the moon phase
                     Prevents moon phase changes
-                    Use to change the moon style
                     '''  // TODO redo
                 CellPhone:
                     '''
                     Leaves a portal to teleport back
                     Click the head of your party members on the fullscreen map to teleport to them
                     '''
-                DPSMeter:
-                    '''
-                    10% multiplicative damage increase
-                    Hit damage is no longer randomized
-                    '''
+                DPSMeter: Hit damage is no longer randomized
+                
+                multiplicative: "{0}% multiplicative damage increase"
 
                 bannerBuff: "Increased damage, defense and loot from the following:"
 
                 DPSMeter2: Gives the detailed stats of your character and DPS
-                HallowedWatch: Use to greatly speed up time
+
+                HallowedWatch:
+                    '''
+                    Use to greatly speed up time
+                    Slows down time
+                    '''
                 MatianWatch:
                     '''
                     Allows ultimate control over time!
                     Use to edit the time
                     Right Click to change between day and night
-                    Stops the time
+                    Stops time
                     '''
                 LocatorAddMarker: Use on a tile to add a marker
                 Locator:
@@ -58,7 +65,7 @@
                 TallyCounter2: Greatly increases item drop rates
                 LifeformAnalyzer2: Greatly increases spawn rates of rare ennemies
                 Stopwatch2: To infinity and beyond!
-                MetalDetector2: Gives a spelunker and mining effect
+                MetalDetector2: 15% mining speed increase
                 ControlStation:
                     '''
                     Allows ultimate control over the weather and the moon!
