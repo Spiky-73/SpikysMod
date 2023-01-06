@@ -36,15 +36,16 @@ public class SpymSystem : ModSystem {
             foreach(IItemDropRule drop in drops){
                 List<DropRateInfo> dropRates = new();
                 drop.ReportDroprates(dropRates,new(1f));
-                foreach(DropRateInfo rate in dropRates){ // TODO >>> banner groups
+                foreach(DropRateInfo rate in dropRates){ // TODO banner groups and mech summons
                     if(addedRecipes.TryGetValue(banner, out HashSet<int>? crafts) && crafts.Contains(rate.itemId)) continue;
                     if(rate.dropRate > 0.5f || rate.conditions?.Exists(c => !c.CanShowItemDropInUI()) == true) continue;
                     float count = 1f/rate.dropRate / 50f;
                     if(count > 7f) count = 7f + MathF.Log2(count - 7f);
                     if(count > 10f) count = MathF.Ceiling(count / 5f) * 5f;
                     else count = MathF.Ceiling(count);
-                    Recipe.Create(rate.itemId, (rate.stackMin + rate.stackMax) / 2) // TODO >>> crafting tile based on progression
+                    Recipe.Create(rate.itemId, (rate.stackMin + rate.stackMax) / 2)
                         .AddIngredient(banner, (int)count)
+                        .AddTile(TileID.TinkerersWorkbench)
                         .Register();
                     if(!addedRecipes.ContainsKey(banner)) addedRecipes[banner] = new();
                     addedRecipes[banner].Add(rate.itemId);

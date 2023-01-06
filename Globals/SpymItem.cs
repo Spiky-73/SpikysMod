@@ -33,7 +33,7 @@ public class SpymItem : GlobalItem {
     }
 
     public override void ModifyTooltips(Item item, List<TooltipLine> tooltips) {
-        List<string> keys = new(); // TODO cache
+        List<string> keys = new(); // ? cache
         switch (item.type) {
         case ItemID.GoldWatch or ItemID.PlatinumWatch:
             keys.Add("Watch");
@@ -52,6 +52,9 @@ public class SpymItem : GlobalItem {
             break;
         case ItemID.MetalDetector:
             keys.Add("MetalDetector");
+            break;
+        case ItemID.DPSMeter:
+            keys.Add("DPSMeter");
             break;
         case ItemID.WeatherRadio:
             keys.Add("WeatherRadio");
@@ -77,7 +80,7 @@ public class SpymItem : GlobalItem {
         case ItemID.WeatherRadio:
             ChangeRain();
             return true;;
-        case ItemID.Sextant:
+        case ItemID.Sextant: // TODO multiplayer
             Main.moonType = (Main.moonType + 1) % 9;
             return true;
         }
@@ -103,10 +106,17 @@ public class SpymItem : GlobalItem {
         SpymPlayer spymPlayer = player.GetModPlayer<SpymPlayer>();
         switch (item.type) {
         case ItemID.Radar:
-            spymPlayer.spawnRateBoost = 2.5f;
+            spymPlayer.spawnRateBoost += 1.5f;
+            break;
+        case ItemID.TallyCounter:
+            spymPlayer.tallyMult += 0.25f;
             break;
         case ItemID.Stopwatch:
-            spymPlayer.speedMult = 1.5f;
+            spymPlayer.speedMult += 0.5f;
+            break; 
+        case ItemID.DPSMeter:
+            spymPlayer.dpsMeter = true;
+            player.GetDamage(DamageClass.Generic) *= 1.10f;
             break;
         case ItemID.MetalDetector:
             if (player.HeldItem.type == ItemID.SpelunkerGlowstick) break;
@@ -121,7 +131,7 @@ public class SpymItem : GlobalItem {
         case ItemID.FishermansGuide:
             spymPlayer.fishGuide = true;
             break;
-        case ItemID.Sextant:
+        case ItemID.Sextant: // TODO multiplayer
             spymPlayer.sextant = true;
             if(spymPlayer.savedMoonPhase == -1) spymPlayer.savedMoonPhase = Main.moonPhase;
             else if(Main.moonPhase != spymPlayer.savedMoonPhase) Main.moonPhase = spymPlayer.savedMoonPhase;
