@@ -40,6 +40,8 @@ public class SpymPlayer : ModPlayer {
 
     public int rightClickedSlot;
 
+    public int npcExtraRerolls;
+
 
     public override void Load() {
         On.Terraria.Main.UpdateWeather += HookUpdateWeather;
@@ -80,6 +82,7 @@ public class SpymPlayer : ModPlayer {
     }
 
     public override void ResetEffects() {
+        npcExtraRerolls = 0;
         timeWarp = 1;
         tallyMult = 1f;
         spawnRateBoost = 1;

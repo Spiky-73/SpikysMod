@@ -71,7 +71,7 @@ public class SpymItem : GlobalItem {
             break;
         }
 
-        foreach ((string key, object[]? args) in keys) tooltips.AddLine(new(SpikysMod.Instance, key.ToUpperInvariant(), args is null ? Language.GetTextValue("Mods.SPYM.Tooltips") : Language.GetTextValue("Mods.SPYM.Tooltips." + key, args)), TooltipLineID.Tooltip);
+        foreach ((string key, object[]? args) in keys) tooltips.AddLine(new(SpikysMod.Instance, key.ToUpperInvariant(), args is null ? Language.GetTextValue("Mods.SPYM.Tooltips." + key) : Language.GetTextValue("Mods.SPYM.Tooltips." + key, args)), TooltipLineID.Tooltip);
     }
 
     public override bool? UseItem(Item item, Player player) {
@@ -114,6 +114,9 @@ public class SpymItem : GlobalItem {
             break;
         case ItemID.TallyCounter:
             spymPlayer.tallyMult += 0.25f;
+            break;
+        case ItemID.LifeformAnalyzer:
+            spymPlayer.npcExtraRerolls += 19;
             break;
         case ItemID.Stopwatch:
             spymPlayer.speedMult += 0.5f;

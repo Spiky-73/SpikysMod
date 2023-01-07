@@ -103,8 +103,8 @@ public class SpymSystem : ModSystem {
 
         float oldYoffset = Main.availableRecipeY[Main.focusRecipe];
         Main.focusRecipe = Array.IndexOf(Main.availableRecipe, focus);
-        if(Main.focusRecipe == -1) Main.focusRecipe = Math.Min(Main.numAvailableRecipes-1, focus);
-        float dYOff = Main.availableRecipeY[Main.focusRecipe] - oldYoffset;
+        if(Main.focusRecipe == -1) Main.focusRecipe = Math.Min(Math.Max(0, Main.numAvailableRecipes-1), focus);
+        float dYOff = Main.availableRecipeY[Main.focusRecipe] - oldYoffset; // BUG when no recipe available
         for (int r = 0; r < Recipe.maxRecipes; r++) {
             Main.availableRecipeY[r] -= dYOff;
         }

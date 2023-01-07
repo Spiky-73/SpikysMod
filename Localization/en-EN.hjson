@@ -9,7 +9,7 @@
                     '''
                 Radar: Slightly increases spawn rates
                 TallyCounter: Increases item drop rates of rare items
-                LifeformAnalyzer: Slightly increases spawn rates of rare ennemies // TODO impl
+                LifeformAnalyzer: Slightly increases spawn rates of rare ennemies
                 Stopwatch: Increases movement speed
                 // TODO impl: left click (or right click when holding a tool) to select a rare tile. Shows the distance to the closest of those tiles (in ranges)
                 MetalDetector: Gives a spelunking glowstick effect
