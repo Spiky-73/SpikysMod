@@ -16,14 +16,19 @@
                 FishGuide: Maximizes fishing power gain with the environment
                 WeatherRadio:
                     '''
-                    Use to toggle the rain
-                    Prevent weather changes
-                    '''  // TODO redo
+                    Use to toggle the Rain
+                    Right click to toggle the Windy Day
+                    Equip to toogle Chrismas and Halloween
+                    '''
                 Sextant:
                     '''
                     Use to change the moon phase
-                    Prevents moon phase changes
-                    '''  // TODO redo
+                    '''  // TODO perc when equiped
+                Compass:
+                    '''
+                    Use to cancel the current event
+                    Events are more likely to occur
+                    '''  // TODO impl
                 CellPhone:
                     '''
                     Leaves a portal to teleport back
@@ -47,7 +52,7 @@
                     Allows ultimate control over time!
                     Use to edit the time
                     Right Click to change between day and night
-                    Stops time
+                    Equip to stops time
                     '''
                 LocatorAddMarker: Use on a tile to add a marker
                 Locator:
@@ -66,14 +71,11 @@
                 LifeformAnalyzer2: Greatly increases spawn rates of rare ennemies
                 Stopwatch2: To infinity and beyond!
                 MetalDetector2: 15% mining speed increase
-                ControlStation:
+                WeatherStation:
                     '''
                     Allows ultimate control over the weather and the moon!
                     Right click while holding to edit control the weahter and the moon
                     ''' // ? Rain, wind , storms
-                UseEvent: Use to cancel or start an event
-                EventSummon: Right click while holding to change the current event // ? pre-harmdode event
-                EventSummon2: Allows ultimate control over events! // ? all events, add new ones as summoner items are added to inventory
             }
 
             Configs: {

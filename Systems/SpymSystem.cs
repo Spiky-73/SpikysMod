@@ -9,9 +9,29 @@ namespace SPYM.Systems;
 
 public class SpymSystem : ModSystem {
 
+    public static bool ForcedSeassons { get; private set; }
+
     public override void Load(){
         On.Terraria.Recipe.FindRecipes += HookFindRecipes;
         On.Terraria.Main.TryAllowingToCraftRecipe += HookTryAllowingToCraftRecipe;
+        On.Terraria.Main.UpdateTime += HookUpdateTime;
+    }
+
+    private void HookUpdateTime(On.Terraria.Main.orig_UpdateTime orig) {
+        foreach(Player player in Main.player){
+            if(!player.active || player.DeadOrGhost || !player.GetModPlayer<Globals.SpymPlayer>().weatherRadio) continue;
+            Main.halloween = true;
+            Main.xMas = true;
+            ForcedSeassons = true;
+            goto success;
+        }
+        if(ForcedSeassons){
+            Main.checkXMas();
+            Main.checkHalloween();
+            ForcedSeassons = false;
+        }
+    success:
+        orig();
     }
 
     private static bool HookTryAllowingToCraftRecipe(On.Terraria.Main.orig_TryAllowingToCraftRecipe orig, Recipe currentRecipe, bool tryFittingItemInInventoryToAllowCrafting, out bool movedAnItemToAllowCrafting) {
@@ -103,8 +123,8 @@ public class SpymSystem : ModSystem {
 
         float oldYoffset = Main.availableRecipeY[Main.focusRecipe];
         Main.focusRecipe = Array.IndexOf(Main.availableRecipe, focus);
-        if(Main.focusRecipe == -1) Main.focusRecipe = Math.Min(Math.Max(0, Main.numAvailableRecipes-1), focus);
-        float dYOff = Main.availableRecipeY[Main.focusRecipe] - oldYoffset; // BUG when no recipe available
+        if(Main.focusRecipe == -1) Main.focusRecipe = Main.numAvailableRecipes <= 0 ? 0 : Math.Min(Main.numAvailableRecipes-1, focus);
+        float dYOff = Main.availableRecipeY[Main.focusRecipe] - oldYoffset;
         for (int r = 0; r < Recipe.maxRecipes; r++) {
             Main.availableRecipeY[r] -= dYOff;
         }

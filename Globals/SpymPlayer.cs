@@ -36,7 +36,6 @@ public class SpymPlayer : ModPlayer {
     public bool fishGuide;
 
     public bool sextant;
-    public int savedMoonPhase;
 
     public int rightClickedSlot;
 
@@ -44,7 +43,6 @@ public class SpymPlayer : ModPlayer {
 
 
     public override void Load() {
-        On.Terraria.Main.UpdateWeather += HookUpdateWeather;
         On.Terraria.Player.Fishing_GetPowerMultiplier += HookGetPowerMultiplier;
         On.Terraria.Projectile.GetFishingPondState += HookGetFishingPondState;
         On.Terraria.Player.HasUnityPotion += HookHasUnityPotion;
@@ -98,7 +96,7 @@ public class SpymPlayer : ModPlayer {
 
 
     public override void PreUpdateBuffs() {
-        if (ClientConfig.Instance.frozenBuffs && (Utility.BossAlive() || Utility.BusyWithInvasion())) {
+        if (ClientConfig.Instance.frozenBuffs && (Utility.BossAlive() || NPC.BusyWithAnyInvasionOfSorts())) {
             for (int i = 0; i < Player.buffType.Length; i++) {
                 int buff = Player.buffType[i];
                 if (Main.debuff[buff] || Main.buffNoTimeDisplay[buff]) continue;
@@ -108,10 +106,6 @@ public class SpymPlayer : ModPlayer {
                 Player.buffTime[i] += 1;
             }
         }
-    }
-
-    public override void UpdateEquips() {
-        if (!sextant) savedMoonPhase = -1;
     }
 
     public override void PostUpdateRunSpeeds() {
@@ -216,12 +210,6 @@ public class SpymPlayer : ModPlayer {
     private void HookGetFishingPondState(On.Terraria.Projectile.orig_GetFishingPondState orig, int x, int y, out bool lava, out bool honey, out int numWaters, out int chumCount) {
         orig(x, y, out lava, out honey, out numWaters, out chumCount);
         if (Main.LocalPlayer.GetModPlayer<SpymPlayer>().fishGuide) numWaters = 300;
-    }
-
-
-    private static void HookUpdateWeather(On.Terraria.Main.orig_UpdateWeather orig, Main self, GameTime gameTime) {
-        // BUG wierd stuff on multi
-        if (!Main.LocalPlayer.GetModPlayer<SpymPlayer>().weatherRadio) orig(self, gameTime);
     }
 
 }

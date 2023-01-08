@@ -29,6 +29,11 @@ public class SpymItem : GlobalItem {
             item.useTime = 45;
             item.useAnimation = 45;
             break;
+        case ItemID.Compass:
+            item.useStyle = ItemUseStyleID.HoldUp;
+            item.useTime = 45;
+            item.useAnimation = 45;
+            break;
         }
     }
 
@@ -60,6 +65,9 @@ public class SpymItem : GlobalItem {
         case ItemID.WeatherRadio:
             keys.Add(("WeatherRadio", null));
             break;
+        case ItemID.Compass:
+            keys.Add(("Compass", null));
+            break;
         case ItemID.FishermansGuide:
             keys.Add(("FishGuide", null));
             break;
@@ -74,16 +82,45 @@ public class SpymItem : GlobalItem {
         foreach ((string key, object[]? args) in keys) tooltips.AddLine(new(SpikysMod.Instance, key.ToUpperInvariant(), args is null ? Language.GetTextValue("Mods.SPYM.Tooltips." + key) : Language.GetTextValue("Mods.SPYM.Tooltips." + key, args)), TooltipLineID.Tooltip);
     }
 
-    public override bool? UseItem(Item item, Player player) {
+    public override bool CanUseItem(Item item, Player player) {
         switch (item.type) {
-        case ItemID.GoldWatch or ItemID.PlatinumWatch:
-            return true;
-        case ItemID.WeatherRadio:
-            ChangeRain();
-            return true;;
-        case ItemID.Sextant: // TODO multiplayer
-            Main.moonType = (Main.moonType + 1) % 9;
-            return true;
+        case ItemID.Compass: // TODO multiplayer
+            return NPC.BusyWithAnyInvasionOfSorts();
+        }
+        return true;
+    }
+
+    public override bool AltFunctionUse(Item item, Player player) {
+        return item.type == ItemID.WeatherRadio;
+    }
+
+    public override bool? UseItem(Item item, Player player) {
+        if(player.altFunctionUse != 2) {
+            switch (item.type) {
+            case ItemID.GoldWatch or ItemID.PlatinumWatch:
+                return true;
+            case ItemID.WeatherRadio:
+                ChangeRain();
+                return true;;
+            case ItemID.Sextant: // TODO multiplayer
+                Main.moonPhase = (Main.moonPhase + 1) % 8;
+                return true;
+            case ItemID.Compass: // TODO multiplayer
+                Main.StopSlimeRain(false);
+                Main.bloodMoon = false;
+                Main.eclipse = false;
+                Terraria.GameContent.Events.DD2Event.StopInvasion(false);
+                Main.invasionType = 0;
+                Main.stopMoonEvent();
+                return true;
+            }
+        }else {
+            switch (item.type) {
+            case ItemID.WeatherRadio: // TODO multiplayer
+                Main.windSpeedTarget = Main.rand.NextBool() ? -0.8f : 0.8f;
+                Main.ResetWindCounter(true);
+                return true;
+            }
         }
 
         return null;
@@ -138,10 +175,8 @@ public class SpymItem : GlobalItem {
         case ItemID.FishermansGuide:
             spymPlayer.fishGuide = true;
             break;
-        case ItemID.Sextant: // TODO multiplayer
+        case ItemID.Sextant:
             spymPlayer.sextant = true;
-            if(spymPlayer.savedMoonPhase == -1) spymPlayer.savedMoonPhase = Main.moonPhase;
-            else if(Main.moonPhase != spymPlayer.savedMoonPhase) Main.moonPhase = spymPlayer.savedMoonPhase;
             break;
         }
     }
@@ -162,7 +197,7 @@ public class SpymItem : GlobalItem {
     }
 
     public static void ChangeRain() {
-        // BUG wierd stuff on multi
+        // TODO multiplayer
         if (Main.raining) Main.StopRain();
         else Main.StartRain();
     }
