@@ -39,4 +39,6 @@ public static class Utility {
     public static bool IsEquipable(this Item item)
         => item.headSlot > 0 || item.bodySlot > 0 || item.legSlot > 0 || item.accessory || Main.projHook[item.shoot] || item.mountType != -1 || (item.buffType > 0 && (Main.lightPet[item.buffType] || Main.vanityPet[item.buffType]));
 
+    public static int Snap(this int i, int increment) => (int)System.MathF.Round((float)i / increment) * increment;
+    public static float Snap(this float f, float increment) => System.MathF.Round(f / increment) * increment;
 }

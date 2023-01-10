@@ -29,16 +29,11 @@ public class SpymItem : GlobalItem {
             item.useTime = 45;
             item.useAnimation = 45;
             break;
-        case ItemID.Compass:
-            item.useStyle = ItemUseStyleID.HoldUp;
-            item.useTime = 45;
-            item.useAnimation = 45;
-            break;
         }
     }
 
     public override void ModifyTooltips(Item item, List<TooltipLine> tooltips) {
-        List<(string, object[]?)> keys = new(); // ? cache
+        List<(string, object[]?)> keys = new();
         switch (item.type) {
         case ItemID.GoldWatch or ItemID.PlatinumWatch:
             keys.Add(("Watch", null));
@@ -56,7 +51,8 @@ public class SpymItem : GlobalItem {
             keys.Add(("Stopwatch", null));
             break;
         case ItemID.MetalDetector:
-            keys.Add(("MetalDetector", null));
+            List<string> kb = SpikysMod.MetalDetectorTarget.GetAssignedKeys();
+            keys.Add(("MetalDetector", new object[]{ kb.Count == 0 ? Lang.menu[195].Value : kb[0] }));
             break;
         case ItemID.DPSMeter:
             keys.Add(("DPSMeter", null));
@@ -64,9 +60,6 @@ public class SpymItem : GlobalItem {
             break;
         case ItemID.WeatherRadio:
             keys.Add(("WeatherRadio", null));
-            break;
-        case ItemID.Compass:
-            keys.Add(("Compass", null));
             break;
         case ItemID.FishermansGuide:
             keys.Add(("FishGuide", null));
@@ -83,15 +76,13 @@ public class SpymItem : GlobalItem {
     }
 
     public override bool CanUseItem(Item item, Player player) {
-        switch (item.type) {
-        case ItemID.Compass: // TODO multiplayer
-            return NPC.BusyWithAnyInvasionOfSorts();
-        }
+        if(item.type == ItemID.Sextant) return NPC.BusyWithAnyInvasionOfSorts();
         return true;
     }
 
     public override bool AltFunctionUse(Item item, Player player) {
-        return item.type == ItemID.WeatherRadio;
+        if(item.type == ItemID.WeatherRadio) return true;
+        return false;
     }
 
     public override bool? UseItem(Item item, Player player) {
@@ -101,17 +92,16 @@ public class SpymItem : GlobalItem {
                 return true;
             case ItemID.WeatherRadio:
                 ChangeRain();
-                return true;;
-            case ItemID.Sextant: // TODO multiplayer
-                Main.moonPhase = (Main.moonPhase + 1) % 8;
                 return true;
-            case ItemID.Compass: // TODO multiplayer
+            case ItemID.Sextant: // TODO multiplayer
                 Main.StopSlimeRain(false);
                 Main.bloodMoon = false;
                 Main.eclipse = false;
                 Terraria.GameContent.Events.DD2Event.StopInvasion(false);
                 Main.invasionType = 0;
                 Main.stopMoonEvent();
+                if (Main.netMode == NetmodeID.SinglePlayer) Main.NewText(Language.GetTextValue("Mods.SPYM.Tooltips.eventCancelled"), Colors.RarityGreen.R, Colors.RarityGreen.G, Colors.RarityGreen.B);
+                else if (Main.netMode == NetmodeID.Server) Terraria.Chat.ChatHelper.BroadcastChatMessage(NetworkText.FromKey("Mods.SPYM.Tooltips.eventCancelled"), Colors.RarityGreen);
                 return true;
             }
         }else {
@@ -162,7 +152,8 @@ public class SpymItem : GlobalItem {
             spymPlayer.dpsMeter = true;
             player.GetDamage(DamageClass.Generic) *= 1.05f;
             break;
-        case ItemID.MetalDetector:
+        case ItemID.MetalDetector: // ? last saved tile
+            spymPlayer.metalDetector = true;
             if (player.HeldItem.type == ItemID.SpelunkerGlowstick) break;
             player.spelunkerTimer++;
             if (player.spelunkerTimer++ < 10) break;

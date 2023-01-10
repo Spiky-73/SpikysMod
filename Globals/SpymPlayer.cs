@@ -33,6 +33,24 @@ public class SpymPlayer : ModPlayer {
 
     public bool weatherRadio;
 
+    public bool metalDetector;
+    public int markedTile;
+    public short markedTilePriority;
+    public void MarkTile(int tileType){
+        UnmarkTile();
+        short rarity = Main.tileOreFinderPriority[tileType];
+        if (rarity == 0) return;
+        markedTile = tileType;
+        markedTilePriority = rarity;
+        Main.tileOreFinderPriority[markedTile] = short.MaxValue;
+    }
+    public void UnmarkTile(){
+        if(markedTile == -1) return;
+        Main.tileOreFinderPriority[markedTile] = markedTilePriority;
+        markedTile = -1;
+        markedTilePriority = 0;
+    }
+
     public bool fishGuide;
 
     public bool sextant;
@@ -85,6 +103,7 @@ public class SpymPlayer : ModPlayer {
         tallyMult = 1f;
         spawnRateBoost = 1;
         speedMult = 1;
+        metalDetector = false;
         weatherRadio = false;
         fishGuide = false;
         sextant = false;
@@ -108,6 +127,10 @@ public class SpymPlayer : ModPlayer {
         }
     }
 
+    public override void PostUpdateEquips(){
+        if(markedTile != -1 && !metalDetector) UnmarkTile();
+    }
+
     public override void PostUpdateRunSpeeds() {
         Player.maxRunSpeed *= speedMult;
         Player.accRunSpeed *= speedMult;
@@ -124,7 +147,9 @@ public class SpymPlayer : ModPlayer {
         if(Main.mouseRight && Main.stackSplit == 1) Main.mouseRightRelease = true;
 
         if (SpikysMod.FavoritedBuff.JustPressed) FavoritedBuff();
-
+        if (SpikysMod.MetalDetectorTarget.JustPressed && Player.HeldItem.pick > 0 && Player.IsTargetTileInItemRange(Player.HeldItem))
+            MarkTile(Main.tile[Player.tileTargetX, Player.tileTargetY].TileType);
+        
         if (Main.playerInventory && (!Main.HoverItem.IsAir || !Main.mouseItem.IsAir)) {
             int slot = -1;
             if (triggersSet.Hotbar1)       slot = 0;

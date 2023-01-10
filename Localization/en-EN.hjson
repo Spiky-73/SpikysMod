@@ -11,8 +11,12 @@
                 TallyCounter: Increases item drop rates of rare items
                 LifeformAnalyzer: Slightly increases spawn rates of rare ennemies
                 Stopwatch: Increases movement speed
-                // TODO impl: left click (or right click when holding a tool) to select a rare tile. Shows the distance to the closest of those tiles (in ranges)
-                MetalDetector: Gives a spelunking glowstick effect
+                MetalDetector:
+                    '''
+                    Gives a spelunking glowstick effect
+                    Press {0} when holding a pickaxe to prioritize an ore
+                    Displays the distance to the closest detected ore
+                    '''
                 FishGuide: Maximizes fishing power gain with the environment
                 WeatherRadio:
                     '''
@@ -22,13 +26,11 @@
                     '''
                 Sextant:
                     '''
-                    Use to change the moon phase
-                    '''  // TODO perc when equiped
-                Compass:
-                    '''
                     Use to cancel the current event
                     Events are more likely to occur
-                    '''  // TODO impl
+                    '''  // TODO impl part 2
+                eventCancelled: The current event has been cancelled
+                // TODO compass and depth meter
                 CellPhone:
                     '''
                     Leaves a portal to teleport back
