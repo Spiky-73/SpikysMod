@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using Terraria.Audio;
 using Terraria.ID;
 using Terraria.UI;
-using Microsoft.Xna.Framework;
 using System;
 using Terraria.Graphics.Capture;
 using Terraria.Localization;
@@ -73,7 +72,7 @@ public class SpymPlayer : ModPlayer {
     }
 
     private static string HookBuffTooltip(On.Terraria.Main.orig_GetBuffTooltip orig, Player player, int buffType)
-        => buffType == BuffID.MonsterBanner ? Language.GetTextValue("Mods.SPYM.Tooltips.bannerBuff") : orig(player, buffType);
+        => buffType == BuffID.MonsterBanner && ServerConfig.Instance.bannerBuff ? Language.GetTextValue("Mods.SPYM.Tooltips.bannerBuff") : orig(player, buffType);
 
     private void HookMinecartDamage(On.Terraria.Player.orig_GetMinecartDamage orig, Player self, float currentSpeed, out int damage, out float knockback){
         InCalledItemCheckOf = self.GetModPlayer<SpymPlayer>();
@@ -115,7 +114,7 @@ public class SpymPlayer : ModPlayer {
 
 
     public override void PreUpdateBuffs() {
-        if (ClientConfig.Instance.frozenBuffs && (Utility.BossAlive() || NPC.BusyWithAnyInvasionOfSorts())) {
+        if (ServerConfig.Instance.frozenBuffs && (Utility.BossAlive() || NPC.BusyWithAnyInvasionOfSorts())) {
             for (int i = 0; i < Player.buffType.Length; i++) {
                 int buff = Player.buffType[i];
                 if (Main.debuff[buff] || Main.buffNoTimeDisplay[buff]) continue;
@@ -147,7 +146,7 @@ public class SpymPlayer : ModPlayer {
         if(Main.mouseRight && Main.stackSplit == 1) Main.mouseRightRelease = true;
 
         if (SpikysMod.FavoritedBuff.JustPressed) FavoritedBuff();
-        if (SpikysMod.MetalDetectorTarget.JustPressed && Player.HeldItem.pick > 0 && Player.IsTargetTileInItemRange(Player.HeldItem))
+        if (ServerConfig.Instance.infoAccPlus && SpikysMod.MetalDetectorTarget.JustPressed && Player.HeldItem.pick > 0 && Player.IsTargetTileInItemRange(Player.HeldItem))
             MarkTile(Main.tile[Player.tileTargetX, Player.tileTargetY].TileType);
         
         if (Main.playerInventory && (!Main.HoverItem.IsAir || !Main.mouseItem.IsAir)) {
@@ -221,9 +220,9 @@ public class SpymPlayer : ModPlayer {
     }
 
 
-    private static bool HookHasUnityPotion(On.Terraria.Player.orig_HasUnityPotion orig, Player self) => self.HasItem(ItemID.CellPhone) || orig(self);
+    private static bool HookHasUnityPotion(On.Terraria.Player.orig_HasUnityPotion orig, Player self) => (ServerConfig.Instance.infoAccPlus && self.HasItem(ItemID.CellPhone)) || orig(self);
     private static void HookTakeUnityPotion(On.Terraria.Player.orig_TakeUnityPotion orig, Player self) {
-        if (!self.HasItem(ItemID.CellPhone)) orig(self);
+        if (ServerConfig.Instance.infoAccPlus && !self.HasItem(ItemID.CellPhone)) orig(self);
     }
 
 

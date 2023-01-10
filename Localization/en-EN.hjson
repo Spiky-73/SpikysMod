@@ -89,6 +89,17 @@
                     frozenBuffs: Frozen buffs
                     t_frozenBuffs: Freezes buffs duration during events or bosses
                 }
+                Server: {
+                    frozenBuffs: Frozen buffs
+                    t_frozenBuffs: Freezes buffs duration during events or bosses
+                    bannerRecipes: Banner recipes
+                    t_bannerRecipes: Adds recipes to craft ennemy drops with banners
+                    bannerBuff: Improved banners
+                    t_bannerBuff: Gives bonus effects to banners
+                    infoAccPlus: Improved informational accesories
+                    t_infoAccPlus: Informational accesories have additional effects or uses
+
+                }
             }
         }
     }

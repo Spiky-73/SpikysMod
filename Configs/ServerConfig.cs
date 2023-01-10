@@ -1,0 +1,23 @@
+using System.ComponentModel;
+
+using Terraria.ModLoader.Config;
+
+namespace SPYM.Configs;
+
+public class ServerConfig : ModConfig {
+
+    [DefaultValue(true), Label("$Mods.SPYM.Configs.Server.FrozenBuffs"), Tooltip("$Mods.SPYM.Configs.Server.t_frozenBuffs")]
+    public bool frozenBuffs;
+    [ReloadRequired, DefaultValue(true), Label("$Mods.SPYM.Configs.Server.BannerRecipes"), Tooltip("$Mods.SPYM.Configs.Server.t_bannerRecipes")]
+    public bool bannerRecipes;
+    [DefaultValue(true), Label("$Mods.SPYM.Configs.Server.BannerBuff"), Tooltip("$Mods.SPYM.Configs.Server.t_bannerBuff")]
+    public bool bannerBuff;
+    [ReloadRequired, DefaultValue(true), Label("$Mods.SPYM.Configs.Server.InfoAccPlus"), Tooltip("$Mods.SPYM.Configs.Server.t_infoAccPlus")]
+    public bool infoAccPlus;
+
+
+    public override ConfigScope Mode => ConfigScope.ClientSide;
+#nullable disable
+    public static ServerConfig Instance;
+#nullable restore
+}

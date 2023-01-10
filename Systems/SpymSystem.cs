@@ -47,40 +47,43 @@ public class SpymSystem : ModSystem {
     }
 
     public override void AddRecipes() {
-        Dictionary<int, HashSet<int>> addedRecipes = new();
-        for (int type = 0; type < NPCLoader.NPCCount; type++){
-            int banner = Item.NPCtoBanner(type);
-            if(banner <= 0) continue;
-            banner = Item.BannerToItem(banner);
-            List<IItemDropRule> drops = Main.ItemDropsDB.GetRulesForNPCID(type);
-            foreach(IItemDropRule drop in drops){
-                List<DropRateInfo> dropRates = new();
-                drop.ReportDroprates(dropRates,new(1f));
-                foreach(DropRateInfo rate in dropRates){ // TODO banner groups and mech summons
-                    if(addedRecipes.TryGetValue(banner, out HashSet<int>? crafts) && crafts.Contains(rate.itemId)) continue;
-                    if(rate.dropRate > 0.5f || rate.conditions?.Exists(c => !c.CanShowItemDropInUI()) == true) continue;
-                    float count = 1f/rate.dropRate / 50f;
-                    if(count > 7f) count = 7f + MathF.Log2(count - 7f);
-                    if(count > 10f) count = MathF.Ceiling(count / 5f) * 5f;
-                    else count = MathF.Ceiling(count);
-                    Recipe.Create(rate.itemId, (rate.stackMin + rate.stackMax) / 2)
-                        .AddIngredient(banner, (int)count)
-                        .AddTile(TileID.TinkerersWorkbench) // TODO Progression scaling
-                        .Register();
-                    if(!addedRecipes.ContainsKey(banner)) addedRecipes[banner] = new();
-                    addedRecipes[banner].Add(rate.itemId);
+        if(Configs.ServerConfig.Instance.bannerRecipes){
+            Dictionary<int, HashSet<int>> addedRecipes = new();
+            for (int type = 0; type < NPCLoader.NPCCount; type++) {
+                int banner = Item.NPCtoBanner(type);
+                if (banner <= 0) continue;
+                banner = Item.BannerToItem(banner);
+                List<IItemDropRule> drops = Main.ItemDropsDB.GetRulesForNPCID(type);
+                foreach (IItemDropRule drop in drops) {
+                    List<DropRateInfo> dropRates = new();
+                    drop.ReportDroprates(dropRates, new(1f));
+                    foreach (DropRateInfo rate in dropRates) { // TODO banner groups and mech summons
+                        if (addedRecipes.TryGetValue(banner, out HashSet<int>? crafts) && crafts.Contains(rate.itemId)) continue;
+                        if (rate.dropRate > 0.5f || rate.conditions?.Exists(c => !c.CanShowItemDropInUI()) == true) continue;
+                        float count = 1f / rate.dropRate / 50f;
+                        if (count > 7f) count = 7f + MathF.Log2(count - 7f);
+                        if (count > 10f) count = MathF.Ceiling(count / 5f) * 5f;
+                        else count = MathF.Ceiling(count);
+                        Recipe.Create(rate.itemId, (rate.stackMin + rate.stackMax) / 2)
+                            .AddIngredient(banner, (int)count)
+                            .AddTile(TileID.TinkerersWorkbench) // TODO Progression scaling
+                            .Register();
+                        if (!addedRecipes.ContainsKey(banner)) addedRecipes[banner] = new();
+                        addedRecipes[banner].Add(rate.itemId);
+                    }
                 }
             }
         }
     }
 
     public override void PostAddRecipes() {
-        foreach (Recipe recipe in Main.recipe) {
-            if (recipe.createItem.type != ItemID.CellPhone || recipe.requiredItem.Find(i => i.type == ItemID.PDA) == null) continue;
-            recipe.requiredItem.Add(new(ItemID.PotionOfReturn, 15));
-            recipe.requiredItem.Add(new(ItemID.WormholePotion, 15));
+        if (Configs.ServerConfig.Instance.infoAccPlus) {
+            foreach (Recipe recipe in Main.recipe) {
+                if (recipe.createItem.type != ItemID.CellPhone || recipe.requiredItem.Find(i => i.type == ItemID.PDA) == null) continue;
+                recipe.requiredItem.Add(new(ItemID.PotionOfReturn, 15));
+                recipe.requiredItem.Add(new(ItemID.WormholePotion, 15));
+            }
         }
-
     }
 
     private void HookFindRecipes(On.Terraria.Recipe.orig_FindRecipes orig, bool canDelayCheck) {
@@ -128,19 +131,5 @@ public class SpymSystem : ModSystem {
         for (int r = 0; r < Recipe.maxRecipes; r++) {
             Main.availableRecipeY[r] -= dYOff;
         }
-    }
-
-
-    public static bool ShowWithFilters(Recipe recipe) {
-        if(Main.mouseItem.IsAir) return true;
-        int type = Main.mouseItem.type;
-        if(recipe.createItem.type == type) return true;
-        if(recipe.requiredItem.Find(i => i.type == type) != null) return true;
-        if(recipe.requiredTile.Contains(Main.mouseItem.createTile)) return true;
-
-        foreach(int groups in recipe.acceptedGroups){
-            if(RecipeGroup.recipeGroups[groups].ContainsItem(type)) return true;
-        }
-        return false;
     }
 }

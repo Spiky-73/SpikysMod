@@ -106,8 +106,7 @@ class SpymNPC : GlobalNPC {
     private static void HookDropItem(On.Terraria.NPC.orig_NPCLoot_DropItems orig, NPC self, Player closestPlayer) {
         InDropItem = true;
         ClosestPlayer = closestPlayer;
-        int banner = Item.NPCtoBanner(self.BannerID());
-        BannerBuff = closestPlayer.HasNPCBannerBuff(banner);
+        BannerBuff = Configs.ServerConfig.Instance.bannerBuff && closestPlayer.HasNPCBannerBuff(Item.NPCtoBanner(self.BannerID()));
         orig(self, closestPlayer);
         InDropItem = false;
         ClosestPlayer = null;
