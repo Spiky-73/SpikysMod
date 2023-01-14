@@ -5,19 +5,14 @@
             Configs: {
                 Client: {
                     SmartConsume: "[i:42] {$Mods.SPYM.Configs.Client.smartConsume}"
-                    t_smartConsume: Consumes items from the smallest stack in the inventory
                     SmartAmmo: "[i:1335] {$Mods.SPYM.Configs.Client.smartAmmo}"
-                    t_smartAmmo: Consumes ammo from the last stack in the inventory
                 }
                 Server: {
                     FrozenBuffs: "[i:2348] {$Mods.SPYM.Configs.Server.frozenBuffs}"
-                    t_frozenBuffs: Freezes buffs duration during events or bosses
                     BannerRecipes: "[i:1683] {$Mods.SPYM.Configs.Server.bannerRecipes}"
-                    t_bannerRecipes: Adds recipes to craft ennemy drops with banners
+                    BannerRarity: "   {$Mods.SPYM.Configs.Server.bannerRarity}"
                     BannerBuff: "[i:2989] {$Mods.SPYM.Configs.Server.bannerBuff}"
-                    t_bannerBuff: Gives bonus effects to banners
                     InfoAccPlus: "[i:3123] {$Mods.SPYM.Configs.Server.infoAccPlus}"
-                    t_infoAccPlus: Informational accesories have additional effects or uses
                 }
             }
         }

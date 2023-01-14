@@ -78,6 +78,9 @@
                     Allows ultimate control over the weather and the moon!
                     Right click while holding to edit control the weahter and the moon
                     ''' // ? Rain, wind , storms
+
+                bannerGroup: "{0} or {1} banner"
+                itemGroup: "Any of the folliwing: {0}"
             }
 
             Configs: {
@@ -94,6 +97,8 @@
                     t_frozenBuffs: Freezes buffs duration during events or bosses
                     bannerRecipes: Banner recipes
                     t_bannerRecipes: Adds recipes to craft ennemy drops with banners
+                    bannerRarity: Maximum drop rate
+                    t_bannerRarity: Drops with a higher drop rate will be ignored during the recipes' creation
                     bannerBuff: Improved banners
                     t_bannerBuff: Gives bonus effects to banners
                     infoAccPlus: Improved informational accesories

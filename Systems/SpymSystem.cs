@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Terraria.Localization;
 using Terraria;
 using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.ModLoader;
+using static Terraria.GameContent.ItemDropRules.Conditions;
 
 namespace SPYM.Systems;
 
@@ -11,7 +15,7 @@ public class SpymSystem : ModSystem {
 
     public static bool ForcedSeassons { get; private set; }
 
-    public override void Load(){
+    public override void Load() {
         On.Terraria.Recipe.FindRecipes += HookFindRecipes;
         On.Terraria.Main.TryAllowingToCraftRecipe += HookTryAllowingToCraftRecipe;
         On.Terraria.Main.UpdateTime += HookUpdateTime;
@@ -46,33 +50,84 @@ public class SpymSystem : ModSystem {
         eventUpdateRate *= mult;
     }
 
+    private record struct BannerRecipe(int ItemID, int Stack, int Tile, int BannerCount);
+
     public override void AddRecipes() {
-        if(Configs.ServerConfig.Instance.bannerRecipes){
-            Dictionary<int, HashSet<int>> addedRecipes = new();
-            for (int type = 0; type < NPCLoader.NPCCount; type++) {
-                int banner = Item.NPCtoBanner(type);
-                if (banner <= 0) continue;
-                banner = Item.BannerToItem(banner);
-                List<IItemDropRule> drops = Main.ItemDropsDB.GetRulesForNPCID(type);
-                foreach (IItemDropRule drop in drops) {
-                    List<DropRateInfo> dropRates = new();
-                    drop.ReportDroprates(dropRates, new(1f));
-                    foreach (DropRateInfo rate in dropRates) { // TODO banner groups and mech summons
-                        if (addedRecipes.TryGetValue(banner, out HashSet<int>? crafts) && crafts.Contains(rate.itemId)) continue;
-                        if (rate.dropRate > 0.5f || rate.conditions?.Exists(c => !c.CanShowItemDropInUI()) == true) continue;
-                        float count = 1f / rate.dropRate / 50f;
-                        if (count > 7f) count = 7f + MathF.Log2(count - 7f);
-                        if (count > 10f) count = MathF.Ceiling(count / 5f) * 5f;
-                        else count = MathF.Ceiling(count);
-                        Recipe.Create(rate.itemId, (rate.stackMin + rate.stackMax) / 2)
-                            .AddIngredient(banner, (int)count)
-                            .AddTile(TileID.TinkerersWorkbench) // TODO Progression scaling
-                            .Register();
-                        if (!addedRecipes.ContainsKey(banner)) addedRecipes[banner] = new();
-                        addedRecipes[banner].Add(rate.itemId);
-                    }
+        if(Configs.ServerConfig.Instance.bannerRecipes) AddBannerRecipes();
+    }
+
+    public void AddBannerRecipes() {
+        Dictionary<int, Dictionary<int, DropRateInfo>> drops = new();
+        for (int type = -65; type < NPCLoader.NPCCount - 65; type++) {
+            int banner = Item.NPCtoBanner(type);
+            if (banner <= 0) continue;
+            Dictionary<int, DropRateInfo> bannerDrops = drops.TryGetValue(banner, out Dictionary<int, DropRateInfo>? bds) ? bds : drops[banner] = new();
+
+            // TODO globals and yoyos
+            foreach (IItemDropRule dropRule in Main.ItemDropsDB.GetRulesForNPCID(type, false)) {
+                List<DropRateInfo> dropRates = new();
+                dropRule.ReportDroprates(dropRates, new(1f));
+
+                foreach(DropRateInfo drop in dropRates){
+                    if (drop.conditions?.Exists(c => !c.CanShowItemDropInUI()) == true) continue;
+                    if(bannerDrops.TryGetValue(drop.itemId, out DropRateInfo d) && d.stackMax*d.dropRate < drop.stackMax*d.dropRate) continue;
+                    bannerDrops[drop.itemId] = drop;
                 }
             }
+        }
+
+        Dictionary<BannerRecipe, HashSet<int>> recipes = new();
+        foreach((int banner, Dictionary<int, DropRateInfo> bannerDrops) in drops) {
+            foreach ((int item, DropRateInfo drop) in bannerDrops) {
+                if (drop.dropRate > Configs.ServerConfig.Instance.bannerRarity) continue;
+                int amount = (int)MathF.Ceiling((drop.stackMin-1 + drop.stackMax) / 2f);
+
+                int stack, mat;
+                if (drop.dropRate >= 1 / 50f) {
+                    stack = Math.Min(new Item(item).maxStack, (int)(amount * drop.dropRate * 50));
+                    mat = 1;
+                }
+                else {
+                    float count = 1f / drop.dropRate / 50f;
+                    if (count > 7f) count = 7f + MathF.Log2(count - 7f);
+                    if (count > 10f) count = count.Snap(5f, Utility.SnapMode.Ceiling);
+                    else count = MathF.Ceiling(count);
+                    stack = amount;
+                    mat = (int)count;
+                }
+                int tile;
+                if(drop.conditions is null) tile = TileID.Solidifier;
+                else if(drop.conditions.Exists(i => i is DownedPlantera or DownedAllMechBosses)) tile = TileID.LihzahrdFurnace;
+                else if(drop.conditions.Exists(i => i is IsHardmode)) tile = TileID.Blendomatic;
+                else tile = TileID.Solidifier;
+
+                BannerRecipe br = new(item, stack, tile, mat);
+                if (!recipes.ContainsKey(br)) recipes[br] = new();
+                recipes[br].Add(banner);
+            }
+        }
+
+        foreach ((BannerRecipe recipe, HashSet<int> banners) in recipes) {
+            string Name() {
+                StringBuilder builder = new();
+                List<string> names = new(banners.Count);
+                foreach (int banner in banners) names.Add(Lang.GetNPCNameValue(Item.BannerToNPC(banner)));
+                for (int i = 0; i < banners.Count - 1; i++) {
+                    builder.Append(names[i]);
+                    if (i == banners.Count - 2) continue;
+                    builder.Append(", ");
+                    if (i % 4 == 3 || (i == banners.Count - 3 && i % 4 == 2)) builder.Append('\n');
+                }
+                return Language.GetTextValue("Mods.SPYM.Tooltips.bannerGroup", builder.ToString(), names[^1]);
+            }
+            Recipe r = Recipe.Create(recipe.ItemID, recipe.Stack).AddTile(recipe.Tile);
+            if (banners.Count > 1) {
+                List<int> bannerItems = new();
+                foreach (int banner in banners) bannerItems.Add(Item.BannerToItem(banner));
+                int group = RecipeGroup.RegisterGroup($"Banners {string.Join(", ", banners)}", new(Name, bannerItems.ToArray()));
+                r.AddRecipeGroup(group, recipe.BannerCount);
+            } else r.AddIngredient(Item.BannerToItem(banners.ToArray()[0]), recipe.BannerCount);
+            r.Register();
         }
     }
 
@@ -117,6 +172,7 @@ public class SpymSystem : ModSystem {
             Recipe recipe = Main.recipe[Main.availableRecipe[r]];
             if(recipe.createItem.type == filterType) createsItem.Add(Main.availableRecipe[r]);
             else if(recipe.requiredItem.Exists(i => i.type == filterType)) requiresItem.Add(Main.availableRecipe[r]);
+            else if(recipe.acceptedGroups.Exists(g => RecipeGroup.recipeGroups[g].ContainsItem(filterType))) requiresItem.Add(Main.availableRecipe[r]);
             else other.Add(Main.availableRecipe[r]);
             Main.availableRecipe[r] = 0;
         }

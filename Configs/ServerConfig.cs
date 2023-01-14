@@ -10,6 +10,8 @@ public class ServerConfig : ModConfig {
     public bool frozenBuffs;
     [ReloadRequired, DefaultValue(true), Label("$Mods.SPYM.Configs.Server.BannerRecipes"), Tooltip("$Mods.SPYM.Configs.Server.t_bannerRecipes")]
     public bool bannerRecipes;
+    [ReloadRequired, DefaultValue(0.25f), Label("$Mods.SPYM.Configs.Server.BannerRarity"), Tooltip("$Mods.SPYM.Configs.Server.t_bannerRarity")]
+    public float bannerRarity;
     [DefaultValue(true), Label("$Mods.SPYM.Configs.Server.BannerBuff"), Tooltip("$Mods.SPYM.Configs.Server.t_bannerBuff")]
     public bool bannerBuff;
     [ReloadRequired, DefaultValue(true), Label("$Mods.SPYM.Configs.Server.InfoAccPlus"), Tooltip("$Mods.SPYM.Configs.Server.t_infoAccPlus")]

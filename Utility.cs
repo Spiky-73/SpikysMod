@@ -40,5 +40,18 @@ public static class Utility {
         => item.headSlot > 0 || item.bodySlot > 0 || item.legSlot > 0 || item.accessory || Main.projHook[item.shoot] || item.mountType != -1 || (item.buffType > 0 && (Main.lightPet[item.buffType] || Main.vanityPet[item.buffType]));
 
     public static int Snap(this int i, int increment) => (int)System.MathF.Round((float)i / increment) * increment;
-    public static float Snap(this float f, float increment) => System.MathF.Round(f / increment) * increment;
+
+    public enum SnapMode {
+        Round,
+        Ceiling,
+        FLoor
+    }
+    public static float Snap(this float f, float increment, SnapMode mode = SnapMode.Round) {
+        float val = f / increment;
+        return mode switch {
+            SnapMode.Ceiling => System.MathF.Ceiling(val),
+            SnapMode.FLoor => System.MathF.Floor(val),
+            SnapMode.Round or _ => System.MathF.Round(val),
+        }* increment;
+    }
 }
