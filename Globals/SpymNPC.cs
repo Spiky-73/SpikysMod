@@ -4,6 +4,7 @@ using MonoMod.Cil;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader;
+using Terraria.ID;
 
 namespace SPYM.Globals;
 class SpymNPC : GlobalNPC {
@@ -112,17 +113,15 @@ class SpymNPC : GlobalNPC {
         ClosestPlayer = null;
     }
 
-    private static int HookRngNext_int(On.Terraria.Utilities.UnifiedRandom.orig_Next_int orig, Terraria.Utilities.UnifiedRandom self, int maxValue) {
-        if (!InDropItem || ClosestPlayer is null) return orig(self, maxValue);
-        return orig(self, AlterDropRate(maxValue));
+    private static int HookRngNext_int(On.Terraria.Utilities.UnifiedRandom.orig_Next_int orig, Terraria.Utilities.UnifiedRandom self, int maxValue){
+        if (InDropItem && ClosestPlayer is not null) return orig(self, AlterRate(maxValue, ClosestPlayer!.GetModPlayer<SpymPlayer>().tallyMult+(BannerBuff ? 0.1f : 0f)));
+        if (Systems.SpymSystem.InUpdateTime && Main.netMode == NetmodeID.SinglePlayer) return orig(self, AlterRate(maxValue, Main.LocalPlayer.GetModPlayer<SpymPlayer>().eventsBoost));
+        return orig(self, maxValue);
     }
 
-    private static int AlterDropRate(int chanceDenominator) {
-        float tallyMult = ClosestPlayer!.GetModPlayer<SpymPlayer>().tallyMult;
-        if(BannerBuff) tallyMult += 0.1f;
-
-        if (tallyMult <= 1f) return chanceDenominator;
-        chanceDenominator = (int)System.MathF.Ceiling(System.MathF.Pow(2, System.MathF.Pow(System.MathF.Log2(chanceDenominator), 1/tallyMult)));
+    private static int AlterRate(int chanceDenominator, float mult) {
+        if (mult <= 1f) return chanceDenominator;
+        chanceDenominator = (int)System.MathF.Ceiling(System.MathF.Pow(2, System.MathF.Pow(System.MathF.Log2(chanceDenominator), 1/mult)));
         return chanceDenominator;
     }
 }

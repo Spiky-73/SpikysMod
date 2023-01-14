@@ -32,6 +32,8 @@ public class SpymPlayer : ModPlayer {
 
     public bool weatherRadio;
 
+    public float eventsBoost;
+    
     public bool metalDetector;
     public int markedTile;
     public short markedTilePriority;
@@ -52,11 +54,10 @@ public class SpymPlayer : ModPlayer {
 
     public bool fishGuide;
 
-    public bool sextant;
-
     public int rightClickedSlot;
 
     public int npcExtraRerolls;
+
 
 
     public override void Load() {
@@ -98,6 +99,7 @@ public class SpymPlayer : ModPlayer {
 
     public override void ResetEffects() {
         npcExtraRerolls = 0;
+        eventsBoost = 1f;
         timeWarp = 1;
         tallyMult = 1f;
         spawnRateBoost = 1;
@@ -105,7 +107,6 @@ public class SpymPlayer : ModPlayer {
         metalDetector = false;
         weatherRadio = false;
         fishGuide = false;
-        sextant = false;
         dpsMeter = false;
 
         foreach (int buff in hiddenBuffs) Main.buffNoTimeDisplay[buff] = false;

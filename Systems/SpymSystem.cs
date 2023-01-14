@@ -8,17 +8,34 @@ using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.ModLoader;
 using static Terraria.GameContent.ItemDropRules.Conditions;
+using MonoMod.Cil;
 
 namespace SPYM.Systems;
 
 public class SpymSystem : ModSystem {
 
     public static bool ForcedSeassons { get; private set; }
+    public static bool InUpdateTime { get; private set; }
+
 
     public override void Load() {
         On.Terraria.Recipe.FindRecipes += HookFindRecipes;
         On.Terraria.Main.TryAllowingToCraftRecipe += HookTryAllowingToCraftRecipe;
         On.Terraria.Main.UpdateTime += HookUpdateTime;
+        On.Terraria.Main.UpdateTime_StartDay += HookUpdateTime_StartDay;
+        On.Terraria.Main.UpdateTime_StartNight += HookUpdateTime_StartNight;
+    }
+
+    private static void HookUpdateTime_StartNight(On.Terraria.Main.orig_UpdateTime_StartNight orig, ref bool stopEvents) {
+        InUpdateTime = true;
+        orig(ref stopEvents);
+        InUpdateTime = false;
+    }
+
+    private static void HookUpdateTime_StartDay(On.Terraria.Main.orig_UpdateTime_StartDay orig, ref bool stopEvents) {
+        InUpdateTime = true;
+        orig(ref stopEvents);
+        InUpdateTime = false;
     }
 
     private void HookUpdateTime(On.Terraria.Main.orig_UpdateTime orig) {

@@ -166,7 +166,7 @@ public class SpymItem : GlobalItem {
                 spymPlayer.dpsMeter = true;
                 player.GetDamage(DamageClass.Generic) *= 1.05f;
                 break;
-            case ItemID.MetalDetector: // ? last saved tile
+            case ItemID.MetalDetector:
                 spymPlayer.metalDetector = true;
                 if (player.HeldItem.type == ItemID.SpelunkerGlowstick) break;
                 player.spelunkerTimer++;
@@ -181,7 +181,7 @@ public class SpymItem : GlobalItem {
                 spymPlayer.fishGuide = true;
                 break;
             case ItemID.Sextant:
-                spymPlayer.sextant = true;
+                spymPlayer.eventsBoost += 0.5f;
                 break;
             }
         }

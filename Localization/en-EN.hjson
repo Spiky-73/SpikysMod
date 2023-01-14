@@ -28,7 +28,7 @@
                     '''
                     Use to cancel the current event
                     Events are more likely to occur
-                    '''  // TODO impl part 2
+                    '''
                 eventCancelled: The current event has been cancelled
                 // TODO compass and depth meter
                 CellPhone:
