@@ -2,78 +2,83 @@
     Mods : {
         SPYM : {
             Tooltips : {
-                Watch:
+                watch:
                     '''
                     Use to speed up time
                     Slightly slows down time
                     '''
-                Radar: Slightly increases spawn rates
-                TallyCounter: Increases item drop rates of rare items
-                LifeformAnalyzer: Slightly increases spawn rates of rare ennemies
-                Stopwatch: Increases movement speed
-                MetalDetector:
+                radar: Slightly increases spawn rates
+                tallyCounter: Increases item drop rates of rare items
+                lifeformAnalyzer: Slightly increases spawn rates of rare ennemies
+                stopwatch: Increases movement speed
+                metalDetector:
                     '''
                     Gives a spelunking glowstick effect
                     Press {0} when holding a pickaxe to prioritize an ore
                     Displays the distance to the closest detected ore
                     '''
-                FishGuide: Maximizes fishing power gain with the environment
-                WeatherRadio:
+                fishGuide: Maximizes fishing power gain with the environment
+                weatherRadio:
                     '''
                     Use to toggle the Rain
                     Right click to toggle the Windy Day
                     Equip to toogle Chrismas and Halloween
                     '''
-                Sextant:
+                sextant:
                     '''
                     Use to cancel the current event
                     Events are more likely to occur
                     '''
                 eventCancelled: The current event has been cancelled
-                // TODO compass and depth meter
-                CellPhone:
+                // TODO >>> compass and depth meter
+                compass:
+                    '''
+                    Use to records the biomes and depth you are in.
+                    Equip to force the recorded biomes
+                    '''
+                cellPhone:
                     '''
                     Leaves a portal to teleport back
                     Click the head of your party members on the fullscreen map to teleport to them
                     '''
-                DPSMeter: Hit damage is no longer randomized
+                dpsMeter: Hit damage is no longer randomized
                 
                 multiplicative: "{0}% multiplicative damage increase"
 
                 bannerBuff: "Increased damage, defense and loot from the following:"
 
-                DPSMeter2: Gives the detailed stats of your character and DPS
+                dpsMeter2: Gives the detailed stats of your character and DPS
 
-                HallowedWatch:
+                hallowedWatch:
                     '''
                     Use to greatly speed up time
                     Slows down time
                     '''
-                MatianWatch:
+                matianWatch:
                     '''
                     Allows ultimate control over time!
                     Use to edit the time
                     Right Click to change between day and night
                     Equip to stops time
                     '''
-                LocatorAddMarker: Use on a tile to add a marker
-                Locator:
+                locatorAddMarker: Use on a tile to add a marker
+                locator:
                     '''
                     Displays makers for interest points on the map
                     Right click while holding to edit markers 
                     ''' // ? biome chest, plantera bulb, temple alter, etc
-                Locator2: Click on a marker to teleport to it
-                Radar2: Greatly increases spawn rate
-                Radar3:
+                locator2: Click on a marker to teleport to it
+                radar2: Greatly increases spawn rate
+                radar3:
                     '''
                     Massivelly increases spawn rate
                     Just don't...
                     '''
-                TallyCounter2: Greatly increases item drop rates
-                LifeformAnalyzer2: Greatly increases spawn rates of rare ennemies
-                Stopwatch2: To infinity and beyond!
-                MetalDetector2: 15% mining speed increase
-                WeatherStation:
+                tallyCounter2: Greatly increases item drop rates
+                lifeformAnalyzer2: Greatly increases spawn rates of rare ennemies
+                stopwatch2: To infinity and beyond!
+                metalDetector2: 15% mining speed increase
+                weatherStation:
                     '''
                     Allows ultimate control over the weather and the moon!
                     Right click while holding to edit control the weahter and the moon

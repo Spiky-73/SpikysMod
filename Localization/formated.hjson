@@ -10,7 +10,7 @@
                 Server: {
                     FrozenBuffs: "[i:2348] {$Mods.SPYM.Configs.Server.frozenBuffs}"
                     BannerRecipes: "[i:1683] {$Mods.SPYM.Configs.Server.bannerRecipes}"
-                    BannerRarity: "   {$Mods.SPYM.Configs.Server.bannerRarity}"
+                    BannerRarity: "  {$Mods.SPYM.Configs.Server.bannerRarity}"
                     BannerBuff: "[i:2989] {$Mods.SPYM.Configs.Server.bannerBuff}"
                     InfoAccPlus: "[i:3123] {$Mods.SPYM.Configs.Server.infoAccPlus}"
                 }

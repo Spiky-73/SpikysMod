@@ -35,22 +35,9 @@ public class SpymPlayer : ModPlayer {
     public float eventsBoost;
     
     public bool metalDetector;
-    public int markedTile;
-    public short markedTilePriority;
-    public void MarkTile(int tileType){
-        UnmarkTile();
-        short rarity = Main.tileOreFinderPriority[tileType];
-        if (rarity == 0) return;
-        markedTile = tileType;
-        markedTilePriority = rarity;
-        Main.tileOreFinderPriority[markedTile] = short.MaxValue;
-    }
-    public void UnmarkTile(){
-        if(markedTile == -1) return;
-        Main.tileOreFinderPriority[markedTile] = markedTilePriority;
-        markedTile = -1;
-        markedTilePriority = 0;
-    }
+    public int tileToMark = -1;
+    public int markedTile = -1;
+    public short markedTileRarity;
 
     public bool fishGuide;
 
@@ -59,17 +46,19 @@ public class SpymPlayer : ModPlayer {
     public int npcExtraRerolls;
 
 
-
     public override void Load() {
-        On.Terraria.Player.Fishing_GetPowerMultiplier += HookGetPowerMultiplier;
-        On.Terraria.Projectile.GetFishingPondState += HookGetFishingPondState;
         On.Terraria.Player.HasUnityPotion += HookHasUnityPotion;
         On.Terraria.Player.TakeUnityPotion += HookTakeUnityPotion;
+
+        On.Terraria.Projectile.GetFishingPondState += HookGetFishingPondState;
+
+        On.Terraria.Main.GetBuffTooltip += HookBuffTooltip;
+        
+        On.Terraria.Player.Fishing_GetPowerMultiplier += HookGetPowerMultiplier;
         On.Terraria.UI.ItemSlot.RightClick_FindSpecialActions += HookRightClickPlus;
         On.Terraria.Main.DamageVar += HookDamageVar;
         On.Terraria.Projectile.Damage += HookProjDamage;
         On.Terraria.Player.GetMinecartDamage += HookMinecartDamage;
-        On.Terraria.Main.GetBuffTooltip += HookBuffTooltip;
     }
 
     private static string HookBuffTooltip(On.Terraria.Main.orig_GetBuffTooltip orig, Player player, int buffType)
@@ -104,10 +93,12 @@ public class SpymPlayer : ModPlayer {
         tallyMult = 1f;
         spawnRateBoost = 1;
         speedMult = 1;
-        metalDetector = false;
         weatherRadio = false;
         fishGuide = false;
         dpsMeter = false;
+        
+        metalDetector = false;
+        if(markedTile != -1) Main.tileOreFinderPriority[markedTile] = markedTileRarity;
 
         foreach (int buff in hiddenBuffs) Main.buffNoTimeDisplay[buff] = false;
         hiddenBuffs.Clear();
@@ -127,8 +118,15 @@ public class SpymPlayer : ModPlayer {
         }
     }
 
-    public override void PostUpdateEquips(){
-        if(markedTile != -1 && !metalDetector) UnmarkTile();
+    public override void PostUpdateEquips() {
+        if(tileToMark != -1) {
+            markedTile = tileToMark;
+            tileToMark = -1;
+        }
+        if (metalDetector && markedTile != -1) {
+            markedTileRarity = Main.tileOreFinderPriority[markedTile];
+            Main.tileOreFinderPriority[markedTile] = short.MaxValue;
+        }
     }
 
     public override void PostUpdateRunSpeeds() {
@@ -142,13 +140,11 @@ public class SpymPlayer : ModPlayer {
         Player.gravity *= speedMult;
     }
 
-
     public override void ProcessTriggers(TriggersSet triggersSet) {
-        if(Main.mouseRight && Main.stackSplit == 1) Main.mouseRightRelease = true;
 
         if (SpikysMod.FavoritedBuff.JustPressed) FavoritedBuff();
         if (ServerConfig.Instance.infoAccPlus && SpikysMod.MetalDetectorTarget.JustPressed && Player.HeldItem.pick > 0 && Player.IsTargetTileInItemRange(Player.HeldItem))
-            MarkTile(Main.tile[Player.tileTargetX, Player.tileTargetY].TileType);
+            tileToMark = Main.tile[Player.tileTargetX, Player.tileTargetY].TileType;
         
         if (Main.playerInventory && (!Main.HoverItem.IsAir || !Main.mouseItem.IsAir)) {
             int slot = -1;
@@ -169,6 +165,10 @@ public class SpymPlayer : ModPlayer {
                 SwapHeld(slot);
             }
         }
+    }
+
+    public override void SetControls() {
+        if (Main.mouseRight && Main.stackSplit == 1) Main.mouseRightRelease = true;
     }
 
     private void SwapHeld(int destSlot) {
