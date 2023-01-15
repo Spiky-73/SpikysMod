@@ -4,6 +4,12 @@ using Terraria.ModLoader.Config;
 
 namespace SPYM.Configs;
 
+public enum SmartPickupLevel {
+    Off,
+    FavoriteOnly,
+    AllItems
+}
+
 public class ClientConfig : ModConfig {
 
 
@@ -11,6 +17,8 @@ public class ClientConfig : ModConfig {
     public bool smartConsume;
     [DefaultValue(true), Label("$Mods.SPYM.Configs.Client.SmartAmmo"), Tooltip("$Mods.SPYM.Configs.Client.t_smartAmmo")]
     public bool smartAmmo;
+    [DefaultValue(SmartPickupLevel.FavoriteOnly), Label("$Mods.SPYM.Configs.Client.SmartPickup"), Tooltip("$Mods.SPYM.Configs.Client.t_smartPickup")]
+    public SmartPickupLevel smartPickup;
 
 
     public override ConfigScope Mode => ConfigScope.ClientSide;

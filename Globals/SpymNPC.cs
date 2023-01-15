@@ -25,7 +25,6 @@ class SpymNPC : GlobalNPC {
 
     private static Vector2? _ilNPCPosition;
 
-    // ? multiplayer
     private static void ILResolveRule(ILContext il) {
         const byte ArgDropAttemptInfo = 2;
 
@@ -69,8 +68,8 @@ class SpymNPC : GlobalNPC {
     private void ILSpawnNPC(ILContext il) {
         ILCursor cursor = new(il);
 
-        byte newNPCIndex = 30;
-        byte spawnInfoIndex = 25;
+        const byte ArgNewNPC = 30;
+        const byte ArgsSpawnInfo = 25;
 
         ILLabel startLoop = il.DefineLabel();
         ILLabel endLoop = il.DefineLabel();
@@ -89,8 +88,8 @@ class SpymNPC : GlobalNPC {
         cursor.GotoPrev();
 
         // Loop init
-        cursor.Emit(OpCodes.Ldloc_S, spawnInfoIndex);
-        cursor.EmitDelegate<System.Action<NPCSpawnInfo>>(spawnInfo => {
+        cursor.Emit(OpCodes.Ldloc_S, ArgsSpawnInfo);
+        cursor.EmitDelegate((NPCSpawnInfo spawnInfo) => {
             InSpawnNPC = true;
             _ilNewNPC = 200;
             _ilRerolls = 1 + spawnInfo.Player.GetModPlayer<SpymPlayer>().npcExtraRerolls;
@@ -102,7 +101,7 @@ class SpymNPC : GlobalNPC {
         // Loop start
         cursor.MarkLabel(startLoop);
         cursor.Emit(OpCodes.Ldc_I4, 200);
-        cursor.Emit(OpCodes.Stloc_S, newNPCIndex);
+        cursor.Emit(OpCodes.Stloc_S, ArgNewNPC);
         cursor.EmitDelegate<System.Action>(() => _ilNewNPC = 200);
 
         // loop end detection
@@ -133,8 +132,13 @@ class SpymNPC : GlobalNPC {
 
     public override void EditSpawnRate(Player player, ref int spawnRate, ref int maxSpawns) {
         float mult = player.GetModPlayer<SpymPlayer>().spawnRateBoost;
-        spawnRate = (int)(spawnRate/mult);
-        maxSpawns = (int)(spawnRate*mult);
+        if(Utility.BossAlive() && Configs.ServerConfig.Instance.betterCalming && player.calmed || player.HasBuff(BuffID.PeaceCandle)) mult = 0;
+
+        if(mult == 0) maxSpawns = 0;
+        else {
+            spawnRate = (int)(spawnRate / mult);
+            maxSpawns = (int)(spawnRate * mult);
+        }
     }
 
     private static void HookDropItem(On.Terraria.NPC.orig_NPCLoot_DropItems orig, NPC self, Player closestPlayer) {

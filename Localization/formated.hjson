@@ -6,6 +6,7 @@
                 Client: {
                     SmartConsume: "[i:42] {$Mods.SPYM.Configs.Client.smartConsume}"
                     SmartAmmo: "[i:1335] {$Mods.SPYM.Configs.Client.smartAmmo}"
+                    SmartPickup: "[i:75] {$Mods.SPYM.Configs.Server.smartPickup}"
                 }
                 Server: {
                     FrozenBuffs: "[i:2348] {$Mods.SPYM.Configs.Server.frozenBuffs}"
@@ -13,6 +14,7 @@
                     BannerRarity: "  {$Mods.SPYM.Configs.Server.bannerRarity}"
                     BannerBuff: "[i:2989] {$Mods.SPYM.Configs.Server.bannerBuff}"
                     InfoAccPlus: "[i:3123] {$Mods.SPYM.Configs.Server.infoAccPlus}"
+                    BetterPeaceCandle: "[i:3117] {$Mods.SPYM.Configs.Server.betterPeaceCandle}"
                 }
             }
         }

@@ -16,9 +16,11 @@ public class ServerConfig : ModConfig {
     public bool bannerBuff;
     [ReloadRequired, DefaultValue(true), Label("$Mods.SPYM.Configs.Server.InfoAccPlus"), Tooltip("$Mods.SPYM.Configs.Server.t_infoAccPlus")]
     public bool infoAccPlus;
+    [DefaultValue(true), Label("$Mods.SPYM.Configs.Server.BetterPeaceCandle"), Tooltip("$Mods.SPYM.Configs.Server.t_betterPeaceCandle")]
+    public bool betterCalming; // ? custom buff
 
 
-    public override ConfigScope Mode => ConfigScope.ClientSide;
+    public override ConfigScope Mode => ConfigScope.ServerSide;
 #nullable disable
     public static ServerConfig Instance;
 #nullable restore

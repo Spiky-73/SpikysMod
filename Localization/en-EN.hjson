@@ -98,8 +98,8 @@
                     t_smartConsume: Consumes items from the smallest stack in the inventory
                     smartAmmo: Smart ammo consumption
                     t_smartAmmo: Consumes ammo from the last stack in the inventory
-                    frozenBuffs: Frozen buffs
-                    t_frozenBuffs: Freezes buffs duration during events or bosses
+                    smartPickup: Smart item pickup
+                    t_smartPickup: Items go to slot they were taken from
                 }
                 Server: {
                     frozenBuffs: Frozen buffs
@@ -112,7 +112,8 @@
                     t_bannerBuff: Gives bonus effects to banners
                     infoAccPlus: Improved informational accesories
                     t_infoAccPlus: Informational accesories have additional effects or uses
-
+                    betterPeaceCandle: Better Peace Candle
+                    t_betterPeaceCandle: Disables npc spawns if a boss is alive when calmed or near a peace candle
                 }
             }
         }

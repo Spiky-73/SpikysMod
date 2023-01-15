@@ -50,6 +50,8 @@ public class SpymPlayer : ModPlayer {
     public bool biomeLock;
     public Vector2? biomeLockPosition;
 
+    public int[] lastTypeOnSlot = new int[50]; // ? save post load
+
     public override void Load() {
         On.Terraria.Player.HasUnityPotion += HookHasUnityPotion;
         On.Terraria.Player.TakeUnityPotion += HookTakeUnityPotion;
@@ -66,6 +68,43 @@ public class SpymPlayer : ModPlayer {
 
         On.Terraria.Player.UpdateBiomes += HookUpdateBiomes;
         IL.Terraria.SceneMetrics.ScanAndExportToMain += ILScanAndExportToMain;
+
+        On.Terraria.UI.ItemSlot.LeftClick_ItemArray_int_int += HookLeftClick;
+        ItemSlot.OnItemTransferred += ItemSlotTranfer;
+        On.Terraria.Player.GetItem += HookGetItem;
+    }
+
+
+    public int leftClickedSlot;
+    private static readonly MethodInfo FillEmptyMethod = typeof(Player).GetMethod("GetItem_FillEmptyInventorySlot", BindingFlags.Instance | BindingFlags.NonPublic, new Type[]{typeof(int), typeof(Item), typeof(GetItemSettings), typeof(Item), typeof(int)})!;
+    private static readonly MethodInfo FillOccupiedMethod = typeof(Player).GetMethod("GetItem_FillIntoOccupiedSlot", BindingFlags.Instance | BindingFlags.NonPublic, new Type[]{typeof(int), typeof(Item), typeof(GetItemSettings), typeof(Item), typeof(int)})!;
+
+    private void HookLeftClick(On.Terraria.UI.ItemSlot.orig_LeftClick_ItemArray_int_int orig, Item[] inv, int context, int slot) {
+        leftClickedSlot = slot;
+        orig(inv, context, slot);
+    }
+    private void ItemSlotTranfer(ItemSlot.ItemTransferInfo info) {
+        if ((info.FromContenxt != 21 || 0 > info.ToContext || info.ToContext >= 3) && (0 > info.FromContenxt || info.FromContenxt >= 3 || info.ToContext != 21)) return;
+        SpymPlayer spymPlayer = Main.LocalPlayer.GetModPlayer<SpymPlayer>();
+        for (int i = 0; i < spymPlayer.lastTypeOnSlot.Length; i++) {
+            if(spymPlayer.lastTypeOnSlot[i] == info.ItemType) spymPlayer.lastTypeOnSlot[i] = 0;
+        }
+        spymPlayer.lastTypeOnSlot[leftClickedSlot] = info.ItemType;
+    }
+
+    private static Item HookGetItem(On.Terraria.Player.orig_GetItem orig, Player self, int plr, Item newItem, GetItemSettings settings) {
+        if (ClientConfig.Instance.smartPickup == SmartPickupLevel.Off || (ClientConfig.Instance.smartPickup == SmartPickupLevel.FavoriteOnly && !newItem.favorited) || newItem.noGrabDelay > 0 || newItem.uniqueStack && self.HasItem(newItem.type)) return orig(self, plr, newItem, settings);
+        
+        SpymPlayer spymPlayer = self.GetModPlayer<SpymPlayer>();
+        int i = Array.IndexOf(spymPlayer.lastTypeOnSlot, newItem.type);
+        if(i == -1) return orig(self, plr, newItem, settings);
+
+        bool gotItem = false;
+        object[] args = new object[] { plr, newItem, settings, newItem, i };
+        if (spymPlayer.Player.inventory[i].type == ItemID.None) gotItem = (bool)FillEmptyMethod.Invoke(self, args)!;
+        else if (spymPlayer.Player.inventory[i].type == newItem.type && newItem.maxStack > 1) gotItem = (bool)FillOccupiedMethod.Invoke(self, args)!;
+        else if(newItem.favorited || !spymPlayer.Player.inventory[i].favorited) (spymPlayer.Player.inventory[i], newItem) = (newItem, spymPlayer.Player.inventory[i]);
+        return gotItem ? new() : orig(self, plr, newItem, settings);
     }
 
     private static bool _ilRedo;
@@ -73,9 +112,8 @@ public class SpymPlayer : ModPlayer {
     private static SpymPlayer? _ilSpymPlayer;
     private static bool _ilScanOreFinderData;
 
-
     private static  void ILScanAndExportToMain(ILContext il) {
-        const byte ArgsSettings = 1;
+        const byte ArgSettings = 1;
 
         ILCursor cursor = new(il);
         ILLabel? ifLabel = null;
@@ -87,7 +125,7 @@ public class SpymPlayer : ModPlayer {
 
         ILLabel redoLabel = cursor.DefineLabel();
 
-        cursor.Emit(OpCodes.Ldarga_S, ArgsSettings);
+        cursor.Emit(OpCodes.Ldarga_S, ArgSettings);
         cursor.EmitDelegate((ref SceneMetricsScanSettings settings) => {
             _ilOriginalScanPosition = null;
             _ilSpymPlayer = Main.LocalPlayer.GetModPlayer<SpymPlayer>();
@@ -96,7 +134,7 @@ public class SpymPlayer : ModPlayer {
                 && _ilSpymPlayer.biomeLock && _ilSpymPlayer.biomeLockPosition.HasValue;
         });
         cursor.MarkLabel(redoLabel);
-        cursor.Emit(OpCodes.Ldarga_S, ArgsSettings);
+        cursor.Emit(OpCodes.Ldarga_S, ArgSettings);
         cursor.EmitDelegate((ref SceneMetricsScanSettings settings) => {
             if (_ilRedo) {
                 _ilOriginalScanPosition = settings.BiomeScanCenterPositionInWorld;
