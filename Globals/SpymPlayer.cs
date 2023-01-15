@@ -9,6 +9,10 @@ using Terraria.UI;
 using System;
 using Terraria.Graphics.Capture;
 using Terraria.Localization;
+using Microsoft.Xna.Framework;
+using MonoMod.Cil;
+using System.Reflection;
+using Mono.Cecil.Cil;
 
 namespace SPYM.Globals;
 
@@ -34,10 +38,8 @@ public class SpymPlayer : ModPlayer {
 
     public float eventsBoost;
     
-    public bool metalDetector;
-    public int tileToMark = -1;
-    public int markedTile = -1;
-    public short markedTileRarity;
+    public bool orePriority;
+    public int prioritizedOre = -1;
 
     public bool fishGuide;
 
@@ -45,6 +47,8 @@ public class SpymPlayer : ModPlayer {
 
     public int npcExtraRerolls;
 
+    public bool biomeLock;
+    public Vector2? biomeLockPosition;
 
     public override void Load() {
         On.Terraria.Player.HasUnityPotion += HookHasUnityPotion;
@@ -59,6 +63,71 @@ public class SpymPlayer : ModPlayer {
         On.Terraria.Main.DamageVar += HookDamageVar;
         On.Terraria.Projectile.Damage += HookProjDamage;
         On.Terraria.Player.GetMinecartDamage += HookMinecartDamage;
+
+        On.Terraria.Player.UpdateBiomes += HookUpdateBiomes;
+        IL.Terraria.SceneMetrics.ScanAndExportToMain += ILScanAndExportToMain;
+    }
+
+    private static bool _ilRedo;
+    private static Vector2? _ilOriginalScanPosition;
+    private static SpymPlayer? _ilSpymPlayer;
+    private static bool _ilScanOreFinderData;
+
+
+    private static  void ILScanAndExportToMain(ILContext il) {
+        const byte ArgsSettings = 1;
+
+        ILCursor cursor = new(il);
+        ILLabel? ifLabel = null;
+        FieldInfo BiomeScanCenterPositionInWorldField = typeof(SceneMetricsScanSettings).GetField(nameof(SceneMetricsScanSettings.BiomeScanCenterPositionInWorld), BindingFlags.Public | BindingFlags.Instance)!;
+        if (!cursor.TryGotoNext(i => i.MatchLdflda(BiomeScanCenterPositionInWorldField)) || !cursor.TryGotoNext(MoveType.After, i => i.MatchBrfalse(out ifLabel))) {
+            SpikysMod.Instance.Logger.Error($"\"{nameof(SceneMetrics)}.{nameof(SceneMetrics.ScanAndExportToMain)}\" il hook could not be applied");
+            return;
+        }
+
+        ILLabel redoLabel = cursor.DefineLabel();
+
+        cursor.Emit(OpCodes.Ldarga_S, ArgsSettings);
+        cursor.EmitDelegate((ref SceneMetricsScanSettings settings) => {
+            _ilOriginalScanPosition = null;
+            _ilSpymPlayer = Main.LocalPlayer.GetModPlayer<SpymPlayer>();
+            _ilRedo = Main.netMode != NetmodeID.Server
+                && settings.BiomeScanCenterPositionInWorld == Main.LocalPlayer.Center
+                && _ilSpymPlayer.biomeLock && _ilSpymPlayer.biomeLockPosition.HasValue;
+        });
+        cursor.MarkLabel(redoLabel);
+        cursor.Emit(OpCodes.Ldarga_S, ArgsSettings);
+        cursor.EmitDelegate((ref SceneMetricsScanSettings settings) => {
+            if (_ilRedo) {
+                _ilOriginalScanPosition = settings.BiomeScanCenterPositionInWorld;
+                settings.BiomeScanCenterPositionInWorld = _ilSpymPlayer!.biomeLockPosition;
+                _ilScanOreFinderData = settings.ScanOreFinderData;
+                settings.ScanOreFinderData = false;
+            } else if (_ilOriginalScanPosition.HasValue) {
+                settings.BiomeScanCenterPositionInWorld = _ilOriginalScanPosition;
+                settings.ScanOreFinderData = _ilScanOreFinderData;
+
+            }
+        });
+
+        cursor.GotoLabel(ifLabel!, MoveType.Before);
+        cursor.EmitDelegate(() =>{
+            if (!_ilRedo) return false;
+            _ilRedo = false;
+            return true;
+        });
+        cursor.Emit(OpCodes.Brtrue, redoLabel);
+    }
+    private static void HookUpdateBiomes(On.Terraria.Player.orig_UpdateBiomes orig, Player self) {
+        SpymPlayer spymPlayer = self.GetModPlayer<SpymPlayer>();
+        if(!spymPlayer.biomeLock || !spymPlayer.biomeLockPosition.HasValue) {
+            orig(self);
+            return;
+        }
+        Vector2 center = self.Center;
+        self.Center = spymPlayer.biomeLockPosition.Value;
+        orig(self);
+        self.Center = center;
     }
 
     private static string HookBuffTooltip(On.Terraria.Main.orig_GetBuffTooltip orig, Player player, int buffType)
@@ -96,14 +165,12 @@ public class SpymPlayer : ModPlayer {
         weatherRadio = false;
         fishGuide = false;
         dpsMeter = false;
-        
-        metalDetector = false;
-        if(markedTile != -1) Main.tileOreFinderPriority[markedTile] = markedTileRarity;
+        biomeLock = false;
+        orePriority = false;
 
         foreach (int buff in hiddenBuffs) Main.buffNoTimeDisplay[buff] = false;
         hiddenBuffs.Clear();
     }
-
 
     public override void PreUpdateBuffs() {
         if (ServerConfig.Instance.frozenBuffs && (Utility.BossAlive() || NPC.BusyWithAnyInvasionOfSorts())) {
@@ -115,17 +182,6 @@ public class SpymPlayer : ModPlayer {
                 Main.buffNoTimeDisplay[buff] = true;
                 Player.buffTime[i] += 1;
             }
-        }
-    }
-
-    public override void PostUpdateEquips() {
-        if(tileToMark != -1) {
-            markedTile = tileToMark;
-            tileToMark = -1;
-        }
-        if (metalDetector && markedTile != -1) {
-            markedTileRarity = Main.tileOreFinderPriority[markedTile];
-            Main.tileOreFinderPriority[markedTile] = short.MaxValue;
         }
     }
 
@@ -143,8 +199,8 @@ public class SpymPlayer : ModPlayer {
     public override void ProcessTriggers(TriggersSet triggersSet) {
 
         if (SpikysMod.FavoritedBuff.JustPressed) FavoritedBuff();
-        if (ServerConfig.Instance.infoAccPlus && SpikysMod.MetalDetectorTarget.JustPressed && Player.HeldItem.pick > 0 && Player.IsTargetTileInItemRange(Player.HeldItem))
-            tileToMark = Main.tile[Player.tileTargetX, Player.tileTargetY].TileType;
+        if (orePriority && SpikysMod.MetalDetectorTarget.JustPressed && Player.HeldItem.pick > 0 && Player.IsTargetTileInItemRange(Player.HeldItem))
+            prioritizedOre = Main.tile[Player.tileTargetX, Player.tileTargetY].TileType;
         
         if (Main.playerInventory && (!Main.HoverItem.IsAir || !Main.mouseItem.IsAir)) {
             int slot = -1;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.Localization;
 using Terraria.ModLoader;
 
 namespace SPYM.Globals;
@@ -16,23 +17,62 @@ public class SpymInfoDisplay : GlobalInfoDisplay {
     }
 
     public override void ModifyDisplayValue(InfoDisplay currentDisplay, ref string displayValue) {
-        if(currentDisplay != InfoDisplay.MetalDetector) return;
-        if(!Main.LocalPlayer.GetModPlayer<SpymPlayer>().metalDetector) return;
-        if (Main.SceneMetrics.bestOre <= 0) return;
-        if (Main.SceneMetrics.ClosestOrePosition == null) return;
-        Vector2 value = new(Main.SceneMetrics.ClosestOrePosition.Value.X, Main.SceneMetrics.ClosestOrePosition.Value.Y);
-        float rawDistance = value.Distance(Main.LocalPlayer.position/16f)*2f;
-        displayValue += $" ({Math.Max(20, (int)rawDistance.Snap(20))} ft)";
+        if(currentDisplay == InfoDisplay.MetalDetector) ModifyDisplay_MetalDetector(ref displayValue);
+        if(currentDisplay == InfoDisplay.Compass) ModifyDisplay_Compass(ref displayValue);
+        if(currentDisplay == InfoDisplay.DepthMeter) ModifyDisplay_DepthMeter(ref displayValue);
+    }
+    public static void ModifyDisplay_MetalDetector(ref string displayValue) {
+        if (!Main.LocalPlayer.GetModPlayer<SpymPlayer>().orePriority || Main.SceneMetrics.bestOre <= 0 || Main.SceneMetrics.ClosestOrePosition == null) return;
+        
+        float rawDistance = Main.SceneMetrics.ClosestOrePosition.Value.ToWorldCoordinates().Distance(Main.LocalPlayer.position);
+        displayValue += Language.GetTextValue("Mods.SPYM.InfoDisplay.metalDetector", Math.Max(20, (int)(rawDistance / 8).Snap(20)));
+    }
+    public static void ModifyDisplay_DepthMeter(ref string displayValue) {
+        SpymPlayer spymPlayer = Main.LocalPlayer.GetModPlayer<SpymPlayer>();
+        if (!spymPlayer.biomeLock || !spymPlayer.biomeLockPosition.HasValue) return;
+        int depth = (int)((double)((spymPlayer.biomeLockPosition.Value.Y + Main.LocalPlayer.height) * 2f / 16f) - Main.worldSurface * 2.0);
+        float worldScale = MathF.Pow(Main.maxTilesX / 4200,2);
+        int worldHeight = 1200;
+        float height = (float)((double)(Main.LocalPlayer.Center.Y / 16f - (65f + 10f * worldScale)) / (Main.worldSurface / 5.0));
+        string text5 = (spymPlayer.biomeLockPosition.Value.Y > (Main.maxTilesY - 204) * 16) ? Language.GetTextValue("GameUI.LayerUnderworld") :
+            ((spymPlayer.biomeLockPosition.Value.Y > Main.rockLayer * 16.0 + worldHeight / 2 + 16.0) ? Language.GetTextValue("GameUI.LayerCaverns") :
+            ((depth > 0) ? Language.GetTextValue("GameUI.LayerUnderground") :
+            ((height < 1f) ? Language.GetTextValue("GameUI.LayerSpace") :
+            Language.GetTextValue("GameUI.LayerSurface"))));
+
+        depth = Math.Abs(depth);
+        
+        string recorded = ((depth != 0) ? Language.GetTextValue("GameUI.Depth", depth) : Language.GetTextValue("GameUI.DepthLevel")) + " " + text5;
+        displayValue += Language.GetTextValue("Mods.SPYM.InfoDisplay.compass", recorded);
+    }
+    public static void ModifyDisplay_Compass(ref string displayValue) {
+        SpymPlayer spymPlayer = Main.LocalPlayer.GetModPlayer<SpymPlayer>();
+        if (!spymPlayer.biomeLock || !spymPlayer.biomeLockPosition.HasValue) return;
+        int position = (int)((spymPlayer.biomeLockPosition.Value.X + Main.LocalPlayer.width / 2) * 2f / 16f - Main.maxTilesX);
+        string recorded = position switch {
+            > 0 => Language.GetTextValue("GameUI.CompassEast", position),
+            < 0 => Language.GetTextValue("GameUI.CompassWest", -position),
+            0 or _ => Language.GetTextValue("GameUI.CompassCenter")
+        };
+        displayValue += Language.GetTextValue("Mods.SPYM.InfoDisplay.compass", recorded);
     }
 
+
     private void HookOreFinderData(On.Terraria.SceneMetrics.orig_UpdateOreFinderData orig, SceneMetrics self) {
-        if(!Main.LocalPlayer.GetModPlayer<SpymPlayer>().metalDetector) {
+        SpymPlayer spymPlayer = Main.LocalPlayer.GetModPlayer<SpymPlayer>();
+        if (!spymPlayer.orePriority || spymPlayer.prioritizedOre == -1) {
             orig(self);
             return;
         }
-        Point center = (Main.LocalPlayer.Center/16).ToPoint();
+        short oreRarity = Main.tileOreFinderPriority[spymPlayer.prioritizedOre];
+        Main.tileOreFinderPriority[spymPlayer.prioritizedOre] = short.MaxValue;
+    
+        Point center = Main.LocalPlayer.Center.ToTileCoordinates();
         List<Point> value = (List<Point>)OreFinderTileLocationsField.GetValue(self)!;
         value.Sort((a, b) => (Math.Pow(a.X - center.X, 2) + Math.Pow(a.Y - center.Y, 2)).CompareTo(Math.Pow(b.X - center.X, 2) + Math.Pow(b.Y - center.Y, 2)));
+        
         orig(self);
+        
+        Main.tileOreFinderPriority[spymPlayer.prioritizedOre] = oreRarity;
     }
 }

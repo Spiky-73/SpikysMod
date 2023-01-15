@@ -21,21 +21,25 @@ public class SpymItem : GlobalItem {
             item.useStyle = ItemUseStyleID.HoldUp;
             item.useTime = 15;
             item.useAnimation = 15;
+            item.UseSound = SoundID.Item15;
             break;
         case ItemID.WeatherRadio:
             item.useStyle = ItemUseStyleID.HoldUp;
             item.useTime = 45;
             item.useAnimation = 45;
+            item.UseSound = SoundID.Item43;
             break;
         case ItemID.Sextant:
             item.useStyle = ItemUseStyleID.HoldUp;
             item.useTime = 45;
             item.useAnimation = 45;
+            item.UseSound = SoundID.Roar;
             break;
         case ItemID.Compass or ItemID.DepthMeter:
-            item.useStyle = ItemUseStyleID.HoldUp;
+            item.useStyle = ItemUseStyleID.Swing;
             item.useTime = 45;
             item.useAnimation = 45;
+            item.UseSound = SoundID.Item6;
             break;
         }
     }
@@ -115,6 +119,7 @@ public class SpymItem : GlobalItem {
         return null;
     }
     public static bool? UseItem_ImprovedInfoAcc(Item item, Player player) {
+        SpymPlayer spymPlayer = player.GetModPlayer<SpymPlayer>();
         if (player.altFunctionUse != 2) {
             switch (item.type) {
             case ItemID.GoldWatch or ItemID.PlatinumWatch:
@@ -131,6 +136,9 @@ public class SpymItem : GlobalItem {
                 Main.stopMoonEvent();
                 if (Main.netMode == NetmodeID.SinglePlayer) Main.NewText(Language.GetTextValue("Mods.SPYM.Tooltips.eventCancelled"), Colors.RarityGreen.R, Colors.RarityGreen.G, Colors.RarityGreen.B);
                 else if (Main.netMode == NetmodeID.Server) Terraria.Chat.ChatHelper.BroadcastChatMessage(NetworkText.FromKey("Mods.SPYM.Tooltips.eventCancelled"), Colors.RarityGreen);
+                return true;
+            case ItemID.Compass or ItemID.DepthMeter:
+                spymPlayer.biomeLockPosition = player.Center;
                 return true;
             }
         } else {
@@ -184,7 +192,7 @@ public class SpymItem : GlobalItem {
                 player.GetDamage(DamageClass.Generic) *= 1.05f;
                 break;
             case ItemID.MetalDetector:
-                spymPlayer.metalDetector = true;
+                spymPlayer.orePriority = true;
                 if (player.HeldItem.type == ItemID.SpelunkerGlowstick) break;
                 player.spelunkerTimer++;
                 if (player.spelunkerTimer++ < 10) break;
@@ -199,6 +207,9 @@ public class SpymItem : GlobalItem {
                 break;
             case ItemID.Sextant:
                 spymPlayer.eventsBoost += 0.5f;
+                break;
+            case ItemID.Compass or ItemID.DepthMeter:
+                spymPlayer.biomeLock = true;
                 break;
             }
         }

@@ -30,11 +30,10 @@
                     Events are more likely to occur
                     '''
                 eventCancelled: The current event has been cancelled
-                // TODO >>> compass and depth meter
                 compass:
                     '''
-                    Use to records the biomes and depth you are in.
-                    Equip to force the recorded biomes
+                    Use to records the biomes you are in.
+                    Equip to combine the recorded biomes with the current ones
                     '''
                 cellPhone:
                     '''
@@ -66,7 +65,7 @@
                     '''
                     Displays makers for interest points on the map
                     Right click while holding to edit markers 
-                    ''' // ? biome chest, plantera bulb, temple alter, etc
+                    ''' // biome chest, plantera bulb, temple alter, etc
                 locator2: Click on a marker to teleport to it
                 radar2: Greatly increases spawn rate
                 radar3:
@@ -82,10 +81,15 @@
                     '''
                     Allows ultimate control over the weather and the moon!
                     Right click while holding to edit control the weahter and the moon
-                    ''' // ? Rain, wind , storms
+                    ''' // Rain, wind , storms
 
                 bannerGroup: "{0} or {1} banner"
                 itemGroup: "Any of the folliwing: {0}"
+            }
+
+            InfoDisplay: {
+                metalDetector: " ({0} ft.)"
+                compass: " (recorded {0})"
             }
 
             Configs: {

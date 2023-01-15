@@ -5,6 +5,8 @@ using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader;
 using Terraria.ID;
+using Terraria.GameContent.ItemDropRules;
+using Microsoft.Xna.Framework;
 
 namespace SPYM.Globals;
 class SpymNPC : GlobalNPC {
@@ -18,6 +20,37 @@ class SpymNPC : GlobalNPC {
         On.Terraria.Utilities.UnifiedRandom.Next_int += HookRngNext_int;
         IL.Terraria.NPC.SpawnNPC += ILSpawnNPC;
         On.Terraria.NPC.NewNPC += HookNewNPC;
+        IL.Terraria.GameContent.ItemDropRules.ItemDropResolver.ResolveRule += ILResolveRule;
+    }
+
+    private static Vector2? _ilNPCPosition;
+
+    // ? multiplayer
+    private static void ILResolveRule(ILContext il) {
+        const byte ArgDropAttemptInfo = 2;
+
+        ILCursor cursor = new(il);
+        MethodInfo candropMethod = typeof(IItemDropRule).GetMethod(nameof(IItemDropRule.CanDrop), BindingFlags.Public | BindingFlags.Instance)!;
+        if(!cursor.TryGotoNext(i => i.MatchCallvirt(candropMethod))){
+            SpikysMod.Instance.Logger.Error($"\"{nameof(ItemDropResolver)}.ResolveRule\" il hook could not be applied");
+            return;
+        }
+        cursor.GotoPrev().GotoPrev();
+        cursor.Emit(OpCodes.Ldarga_S, ArgDropAttemptInfo);
+        cursor.EmitDelegate((ref DropAttemptInfo info) => {
+            SpymPlayer spymPlayer = info.player.GetModPlayer<SpymPlayer>();
+            if (!spymPlayer.biomeLock || !spymPlayer.biomeLockPosition.HasValue) return;
+            _ilNPCPosition = info.npc.Center;
+            info.npc.Center = spymPlayer.biomeLockPosition.Value;
+        });
+        cursor.GotoNext(MoveType.After, i => i.MatchCallvirt(candropMethod));
+        cursor.Emit(OpCodes.Ldarga_S, ArgDropAttemptInfo);
+        cursor.EmitDelegate((bool res, ref DropAttemptInfo info) => {
+            if (!_ilNPCPosition.HasValue) return res;
+            info.npc.Center = _ilNPCPosition.Value;
+            _ilNPCPosition = null;
+            return res;
+        });
     }
 
     private static int HookNewNPC(On.Terraria.NPC.orig_NewNPC orig, IEntitySource source, int X, int Y, int Type, int Start, float ai0, float ai1, float ai2, float ai3, int Target) {
@@ -46,7 +79,7 @@ class SpymNPC : GlobalNPC {
         FieldInfo netModeField = typeof(Main).GetField(nameof(Main.netMode), BindingFlags.Static | BindingFlags.Public)!;
 
         if (!cursor.TryGotoNext(i => i.MatchCall(chooseSpawnMethod)) || !cursor.TryGotoNext(i => i.MatchLdsfld(netModeField))) {
-            SpikysMod.Instance.Logger.Error($"{nameof(NPC)}.{nameof(NPC.SpawnNPC)} il hook could not be applied");
+            SpikysMod.Instance.Logger.Error($"\"{nameof(NPC)}.{nameof(NPC.SpawnNPC)}\" il hook could not be applied");
             return;
         }
 
