@@ -13,6 +13,7 @@ using Microsoft.Xna.Framework;
 using MonoMod.Cil;
 using System.Reflection;
 using Mono.Cecil.Cil;
+using Terraria.GameContent.UI;
 
 namespace SPYM.Globals;
 
@@ -239,7 +240,11 @@ public class SpymPlayer : ModPlayer {
         if (SpikysMod.FavoritedBuff.JustPressed) FavoritedBuff();
         if (orePriority && SpikysMod.MetalDetectorTarget.JustPressed && Player.HeldItem.pick > 0 && Player.IsTargetTileInItemRange(Player.HeldItem))
             prioritizedOre = Main.tile[Player.tileTargetX, Player.tileTargetY].TileType;
-        
+
+        foreach((ModKeybind kb, BuilderAccTogglesUI.GetIsAvailablemethod isAvailable, BuilderAccTogglesUI.PerformClickMethod onClick) in SpikysMod.BuilderAccToggles){
+            if(kb.JustPressed && isAvailable(Player)) onClick(Player);
+        }
+
         if (Main.playerInventory && (!Main.HoverItem.IsAir || !Main.mouseItem.IsAir)) {
             int slot = -1;
             if (triggersSet.Hotbar1)       slot = 0;
