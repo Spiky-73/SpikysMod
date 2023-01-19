@@ -4,11 +4,24 @@ using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.Localization;
-
+using Terraria.UI;
+using System.Reflection;
 
 namespace SPYM.Globals;
 
 public class SpymItem : GlobalItem {
+
+    public override void Load() {
+        bool[] canFavoriteAt = (bool[])typeof(ItemSlot).GetField("canFavoriteAt", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
+        canFavoriteAt[3] = true;
+
+        On.Terraria.UI.ChestUI.LootAll += HookLootAll;
+        On.Terraria.UI.ChestUI.Restock += HookRestock;
+
+    }
+
+    private static void HookRestock(On.Terraria.UI.ChestUI.orig_Restock orig) => Utility.RunWithHiddenItem(Main.LocalPlayer.Chest()!, i => i.favorited, () => orig());
+    private static void HookLootAll(On.Terraria.UI.ChestUI.orig_LootAll orig) => Utility.RunWithHiddenItem(Main.LocalPlayer.Chest()!, i => i.favorited, () => orig());
 
     public override void SetDefaults(Item item) {
         if (Configs.ServerConfig.Instance.infoAccPlus) SetDefaults_ImprovedInfoAcc(item);
@@ -128,6 +141,7 @@ public class SpymItem : GlobalItem {
                 ChangeRain();
                 return true;
             case ItemID.Sextant: // TODO multiplayer
+                // TODO only if event has been defeated
                 Main.StopSlimeRain(false);
                 Main.bloodMoon = false;
                 Main.eclipse = false;

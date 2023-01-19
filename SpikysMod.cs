@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Reflection;
 using Terraria;
 using Terraria.GameContent.UI;
 using Terraria.ModLoader;
@@ -42,15 +41,15 @@ public class SpikysMod : Mod {
 				(Player player) => player.rulerLine,
 				(Player player) => CycleAccState(player, 3)
 			), (
-			//	KeybindLoader.RegisterKeybind(this, "Wire display", Microsoft.Xna.Framework.Input.Keys.None),
-			//	(Player player) => player.InfoAccMechShowWires,
-			//	(Player player) =>
-			//		{
-			//			CycleAccState(player, 4, 3);
-			//			for (int i = 5; i < 8; i++) player.builderAccStatus[i] = player.builderAccStatus[4];
-			//			player.builderAccStatus[9] = player.builderAccStatus[4];
-			//		}
-			// ), (
+				KeybindLoader.RegisterKeybind(this, "Wire display", Microsoft.Xna.Framework.Input.Keys.None),
+				(Player player) => player.InfoAccMechShowWires,
+				(Player player) =>
+					{
+						CycleAccState(player, 4, 3);
+						for (int i = 5; i < 8; i++) player.builderAccStatus[i] = player.builderAccStatus[4];
+						player.builderAccStatus[9] = player.builderAccStatus[4];
+					}
+			), (
 				KeybindLoader.RegisterKeybind(this, "Forced Wires", Microsoft.Xna.Framework.Input.Keys.None),
 				(Player player) => player.InfoAccMechShowWires,
 				(Player player) => CycleAccState(player, 8)

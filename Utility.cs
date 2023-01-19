@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Terraria;
 
 namespace SPYM;
@@ -53,5 +55,28 @@ public static class Utility {
             SnapMode.FLoor => System.MathF.Floor(val),
             SnapMode.Round or _ => System.MathF.Round(val),
         }* increment;
+    }
+
+    public static bool InChest(this Player player, [MaybeNullWhen(false)] out Item[] chest) => (chest = player.Chest()) is not null;
+    public static Item[]? Chest(this Player player) => player.chest switch {
+        > -1 => Main.chest[player.chest].item,
+        -2 => player.bank.item,
+        -3 => player.bank2.item,
+        -4 => player.bank3.item,
+        -6 => player.bank4.item,
+        _ => null
+    };
+
+    public static void RunWithHiddenItem(Item[] chest, System.Predicate<Item> hidden, System.Action action) {
+        Dictionary<int, Item> hiddenItems = new();
+        for (int i = 0; i < chest.Length; i++) {
+            if (!hidden(chest[i])) continue;
+            hiddenItems[i] = chest[i];
+            chest[i] = new();
+        }
+        action();
+        foreach ((int slot, Item item) in hiddenItems) {
+            chest[slot] = item;
+        }
     }
 }

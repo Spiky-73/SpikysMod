@@ -51,7 +51,7 @@ public class SpymPlayer : ModPlayer {
     public bool biomeLock;
     public Vector2? biomeLockPosition;
 
-    public int[] lastTypeOnSlot = new int[50]; // ? save post load
+    public int[] lastTypeOnSlot = new int[50];
 
     public override void Load() {
         On.Terraria.Player.HasUnityPotion += HookHasUnityPotion;
@@ -82,14 +82,17 @@ public class SpymPlayer : ModPlayer {
 
     private void HookLeftClick(On.Terraria.UI.ItemSlot.orig_LeftClick_ItemArray_int_int orig, Item[] inv, int context, int slot) {
         leftClickedSlot = slot;
+        int type = Main.mouseItem.type, stack = Main.mouseItem.stack, prefix = Main.mouseItem.prefix;
+        bool fav = Main.mouseItem.favorited;
         orig(inv, context, slot);
+        if(fav && context == 3 && inv[slot].type == type && inv[slot].stack == stack && inv[slot].prefix == prefix) inv[slot].favorited = true;
     }
     private void ItemSlotTranfer(ItemSlot.ItemTransferInfo info) {
-        if ((info.FromContenxt != 21 || 0 > info.ToContext || info.ToContext >= 3) && (0 > info.FromContenxt || info.FromContenxt >= 3 || info.ToContext != 21)) return;
         SpymPlayer spymPlayer = Main.LocalPlayer.GetModPlayer<SpymPlayer>();
         for (int i = 0; i < spymPlayer.lastTypeOnSlot.Length; i++) {
             if(spymPlayer.lastTypeOnSlot[i] == info.ItemType) spymPlayer.lastTypeOnSlot[i] = 0;
         }
+        if ((info.FromContenxt != 21 || 0 > info.ToContext || info.ToContext >= 3) && (0 > info.FromContenxt || info.FromContenxt >= 3 || info.ToContext != 21)) return;
         spymPlayer.lastTypeOnSlot[leftClickedSlot] = info.ItemType;
     }
 
@@ -277,16 +280,7 @@ public class SpymPlayer : ModPlayer {
         SoundEngine.PlaySound(SoundID.Grab);
     }
 
-    private void FavoritedBuff() {
-        Item[] inv = Player.inventory;
-        for (int i = 0; i < Player.inventory.Length - 1; i++) {
-            if (!inv[i].favorited && inv[i].stack > 0) inv[i].stack *= -1;
-        }
-        Player.QuickBuff();
-        for (int i = 0; i < inv.Length - 1; i++) {
-            if (!inv[i].favorited && inv[i].stack < 0) inv[i].stack *= -1;
-        }
-    }
+    private void FavoritedBuff() => Utility.RunWithHiddenItem(Player.inventory, i => !i.favorited, Player.QuickBuff);
 
 
     public override bool PreItemCheck(){

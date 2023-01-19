@@ -17,7 +17,7 @@ public class ServerConfig : ModConfig {
     [ReloadRequired, DefaultValue(true), Label("$Mods.SPYM.Configs.Server.InfoAccPlus"), Tooltip("$Mods.SPYM.Configs.Server.t_infoAccPlus")]
     public bool infoAccPlus;
     [DefaultValue(true), Label("$Mods.SPYM.Configs.Server.BetterPeaceCandle"), Tooltip("$Mods.SPYM.Configs.Server.t_betterPeaceCandle")]
-    public bool betterCalming; // ? custom buff
+    public bool betterCalming;
 
 
     public override ConfigScope Mode => ConfigScope.ServerSide;
