@@ -20,8 +20,8 @@ public class SpymItem : GlobalItem {
 
     }
 
-    private static void HookRestock(On.Terraria.UI.ChestUI.orig_Restock orig) => Utility.RunWithHiddenItem(Main.LocalPlayer.Chest()!, i => i.favorited, () => orig());
-    private static void HookLootAll(On.Terraria.UI.ChestUI.orig_LootAll orig) => Utility.RunWithHiddenItem(Main.LocalPlayer.Chest()!, i => i.favorited, () => orig());
+    private static void HookRestock(On.Terraria.UI.ChestUI.orig_Restock orig) => Utility.RunWithHiddenItems(Main.LocalPlayer.Chest()!, i => i.favorited, () => orig());
+    private static void HookLootAll(On.Terraria.UI.ChestUI.orig_LootAll orig) => Utility.RunWithHiddenItems(Main.LocalPlayer.Chest()!, i => i.favorited, () => orig());
 
     public override void SetDefaults(Item item) {
         if (Configs.ServerConfig.Instance.infoAccPlus) SetDefaults_ImprovedInfoAcc(item);
@@ -173,7 +173,7 @@ public class SpymItem : GlobalItem {
         SpymPlayer spymPlayer = player.GetModPlayer<SpymPlayer>();
         switch (item.type) {
         case ItemID.GoldWatch or ItemID.PlatinumWatch:
-            spymPlayer.timeWarp *= 10;
+            spymPlayer.timeMult *= 10;
             break;
         case ItemID.CellPhone:
             if (player.itemTime == player.itemTimeMax / 2 + 1)
@@ -187,13 +187,13 @@ public class SpymItem : GlobalItem {
         if (Configs.ServerConfig.Instance.infoAccPlus) {
             switch (item.type) {
             case ItemID.GoldWatch or ItemID.PlatinumWatch:
-                spymPlayer.timeWarp *= 0.9f;
+                spymPlayer.timeMult *= 0.9f;
                 break;
             case ItemID.Radar:
-                spymPlayer.spawnRateBoost += 1.5f;
+                spymPlayer.spawnRateMult += 1.5f;
                 break;
             case ItemID.TallyCounter:
-                spymPlayer.tallyMult += 0.25f;
+                spymPlayer.lootMult += 0.25f;
                 break;
             case ItemID.LifeformAnalyzer:
                 spymPlayer.npcExtraRerolls += 19;
@@ -202,7 +202,7 @@ public class SpymItem : GlobalItem {
                 spymPlayer.speedMult += 0.5f;
                 break;
             case ItemID.DPSMeter:
-                spymPlayer.dpsMeter = true;
+                spymPlayer.fixDamage = true;
                 player.GetDamage(DamageClass.Generic) *= 1.05f;
                 break;
             case ItemID.MetalDetector:
@@ -214,13 +214,13 @@ public class SpymItem : GlobalItem {
                 Main.instance.SpelunkerProjectileHelper.AddSpotToCheck(player.Center);
                 break;
             case ItemID.WeatherRadio:
-                spymPlayer.weatherRadio = true;
+                spymPlayer.forcedSeasons = true;
                 break;
             case ItemID.FishermansGuide:
-                spymPlayer.fishGuide = true;
+                spymPlayer.maxFishingPower = true;
                 break;
             case ItemID.Sextant:
-                spymPlayer.eventsBoost += 0.5f;
+                spymPlayer.eventsMult += 0.5f;
                 break;
             case ItemID.Compass or ItemID.DepthMeter:
                 spymPlayer.biomeLock = true;

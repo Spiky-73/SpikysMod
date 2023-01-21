@@ -8,7 +8,6 @@ using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.ModLoader;
 using static Terraria.GameContent.ItemDropRules.Conditions;
-using MonoMod.Cil;
 
 namespace SPYM.Systems;
 
@@ -40,7 +39,7 @@ public class SpymSystem : ModSystem {
 
     private void HookUpdateTime(On.Terraria.Main.orig_UpdateTime orig) {
         foreach(Player player in Main.player){
-            if(!player.active || player.DeadOrGhost || !player.GetModPlayer<Globals.SpymPlayer>().weatherRadio) continue;
+            if(!player.active || player.DeadOrGhost || !player.GetModPlayer<Globals.SpymPlayer>().forcedSeasons) continue;
             Main.halloween = true;
             Main.xMas = true;
             ForcedSeassons = true;
@@ -55,13 +54,12 @@ public class SpymSystem : ModSystem {
         orig();
     }
 
-    private static bool HookTryAllowingToCraftRecipe(On.Terraria.Main.orig_TryAllowingToCraftRecipe orig, Recipe currentRecipe, bool tryFittingItemInInventoryToAllowCrafting, out bool movedAnItemToAllowCrafting) {
-        return orig(currentRecipe, true, out movedAnItemToAllowCrafting);
-    }
+    private static bool HookTryAllowingToCraftRecipe(On.Terraria.Main.orig_TryAllowingToCraftRecipe orig, Recipe currentRecipe, bool tryFittingItemInInventoryToAllowCrafting, out bool movedAnItemToAllowCrafting)
+        => orig(currentRecipe, Configs.ClientConfig.Instance.filterRecipes || tryFittingItemInInventoryToAllowCrafting, out movedAnItemToAllowCrafting);
 
     public override void ModifyTimeRate(ref double timeRate, ref double tileUpdateRate, ref double eventUpdateRate) {
         // TODO multiplayer
-        float mult = Main.LocalPlayer.GetModPlayer<Globals.SpymPlayer>().timeWarp;
+        float mult = Main.LocalPlayer.GetModPlayer<Globals.SpymPlayer>().timeMult;
         timeRate *= mult;
         tileUpdateRate *= mult;
         eventUpdateRate *= mult;
@@ -159,7 +157,7 @@ public class SpymSystem : ModSystem {
     }
 
     private void HookFindRecipes(On.Terraria.Recipe.orig_FindRecipes orig, bool canDelayCheck) {
-        if (canDelayCheck || Main.mouseItem.IsAir) {
+        if (!Configs.ClientConfig.Instance.filterRecipes && canDelayCheck || Main.mouseItem.IsAir) {
             orig(canDelayCheck);
             return;
         }

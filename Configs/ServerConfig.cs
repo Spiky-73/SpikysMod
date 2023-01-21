@@ -18,6 +18,9 @@ public class ServerConfig : ModConfig {
     public bool infoAccPlus;
     [DefaultValue(true), Label("$Mods.SPYM.Configs.Server.BetterPeaceCandle"), Tooltip("$Mods.SPYM.Configs.Server.t_betterPeaceCandle")]
     public bool betterCalming;
+    [DefaultValue(true), Label("$Mods.SPYM.Configs.Server.FavoriteItemsInChest"), Tooltip("$Mods.SPYM.Configs.Server.t_favoriteItemsInChest")]
+    public bool favoritedItemsInChest;
+
 
 
     public override ConfigScope Mode => ConfigScope.ServerSide;

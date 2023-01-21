@@ -9,11 +9,7 @@ using Terraria.GameContent.ItemDropRules;
 using Microsoft.Xna.Framework;
 
 namespace SPYM.Globals;
-class SpymNPC : GlobalNPC {
-
-    public static bool InDropItem { get; private set; }
-    public static bool BannerBuff { get; private set; }
-    public static Player? ClosestPlayer { get; private set; }
+public class SpymNPC : GlobalNPC {
 
     public override void Load() {
         On.Terraria.NPC.NPCLoot_DropItems += HookDropItem;
@@ -52,24 +48,20 @@ class SpymNPC : GlobalNPC {
         });
     }
 
+    private static bool _inSpawnNPC;
+    private static int _ilNewNPC;
+    private static int _ilAttempts, _ilCurrentTry;
+    private static NPC? _ilRarestSpawn;
     private static int HookNewNPC(On.Terraria.NPC.orig_NewNPC orig, IEntitySource source, int X, int Y, int Type, int Start, float ai0, float ai1, float ai2, float ai3, int Target) {
         int s = orig(source, X, Y, Type, Start, ai0, ai1, ai2, ai3, Target);
-        if(InSpawnNPC) _ilNewNPC = s;
+        if(_inSpawnNPC) _ilNewNPC = s;
         return s;
     }
-
-    public static bool InSpawnNPC { get; private set; }
-
-    private static int _ilCurrent = 0;
-    private static int _ilNewNPC = 0;
-    private static NPC? _ilRarestSpawn = null;
-    private static int _ilRerolls = 1;
-
     private void ILSpawnNPC(ILContext il) {
         ILCursor cursor = new(il);
 
-        const byte ArgNewNPC = 30;
-        const byte ArgsSpawnInfo = 25;
+        const byte LocNewNPC = 30;
+        const byte LocSpawnInfo = 25;
 
         ILLabel startLoop = il.DefineLabel();
         ILLabel endLoop = il.DefineLabel();
@@ -88,12 +80,12 @@ class SpymNPC : GlobalNPC {
         cursor.GotoPrev();
 
         // Loop init
-        cursor.Emit(OpCodes.Ldloc_S, ArgsSpawnInfo);
+        cursor.Emit(OpCodes.Ldloc_S, LocSpawnInfo);
         cursor.EmitDelegate((NPCSpawnInfo spawnInfo) => {
-            InSpawnNPC = true;
+            _inSpawnNPC = true;
             _ilNewNPC = 200;
-            _ilRerolls = 1 + spawnInfo.Player.GetModPlayer<SpymPlayer>().npcExtraRerolls;
-            _ilCurrent = 0;
+            _ilAttempts = 1 + spawnInfo.Player.GetModPlayer<SpymPlayer>().npcExtraRerolls;
+            _ilCurrentTry = 0;
             _ilRarestSpawn = null;
         });
         cursor.Emit(OpCodes.Br, endLoop);
@@ -101,10 +93,10 @@ class SpymNPC : GlobalNPC {
         // Loop start
         cursor.MarkLabel(startLoop);
         cursor.Emit(OpCodes.Ldc_I4, 200);
-        cursor.Emit(OpCodes.Stloc_S, ArgNewNPC);
+        cursor.Emit(OpCodes.Stloc_S, LocNewNPC);
         cursor.EmitDelegate<System.Action>(() => _ilNewNPC = 200);
 
-        // loop end detection
+        // Loop end detection
         cursor.GotoNext(i => i.MatchLdsfld(typeof(Main).GetField(nameof(Main.netMode), BindingFlags.Static | BindingFlags.Public)!));
         cursor.GotoNext();
 
@@ -112,17 +104,17 @@ class SpymNPC : GlobalNPC {
         cursor.EmitDelegate((int netMode) => {
             if(_ilRarestSpawn is null || Main.npc[_ilNewNPC].rarity > _ilRarestSpawn.rarity) _ilRarestSpawn = Main.npc[_ilNewNPC];
             Main.npc[_ilNewNPC] = new();
-            _ilCurrent++;
+            _ilCurrentTry++;
         });
 
         // Loop end
         cursor.MarkLabel(endLoop);
-        cursor.EmitDelegate(() => _ilCurrent < _ilRerolls);
+        cursor.EmitDelegate(() => _ilCurrentTry < _ilAttempts);
         cursor.Emit(OpCodes.Brtrue, startLoop);
 
         // Post loop
         cursor.EmitDelegate(() => {
-            InSpawnNPC = false;
+            _inSpawnNPC = false;
             Main.npc[_ilNewNPC] = _ilRarestSpawn;
         });
 
@@ -131,7 +123,7 @@ class SpymNPC : GlobalNPC {
 
 
     public override void EditSpawnRate(Player player, ref int spawnRate, ref int maxSpawns) {
-        float mult = player.GetModPlayer<SpymPlayer>().spawnRateBoost;
+        float mult = player.GetModPlayer<SpymPlayer>().spawnRateMult;
         if(Utility.BossAlive() && Configs.ServerConfig.Instance.betterCalming && player.calmed || player.HasBuff(BuffID.PeaceCandle)) mult = 0;
 
         if(mult == 0) maxSpawns = 0;
@@ -141,25 +133,22 @@ class SpymNPC : GlobalNPC {
         }
     }
 
+
+    private static bool _inDropItem;
+    private static bool _bannerBuff;
+    private static Player? _closestPlayer;
     private static void HookDropItem(On.Terraria.NPC.orig_NPCLoot_DropItems orig, NPC self, Player closestPlayer) {
-        InDropItem = true;
-        ClosestPlayer = closestPlayer;
-        BannerBuff = Configs.ServerConfig.Instance.bannerBuff && closestPlayer.HasNPCBannerBuff(Item.NPCtoBanner(self.BannerID()));
+        _inDropItem = true;
+        _closestPlayer = closestPlayer;
+        _bannerBuff = Configs.ServerConfig.Instance.bannerBuff && closestPlayer.HasNPCBannerBuff(Item.NPCtoBanner(self.BannerID()));
         orig(self, closestPlayer);
-        InDropItem = false;
-        ClosestPlayer = null;
+        _inDropItem = false;
+        _closestPlayer = null;
     }
-
     private static int HookRngNext_int(On.Terraria.Utilities.UnifiedRandom.orig_Next_int orig, Terraria.Utilities.UnifiedRandom self, int maxValue){
-        if (InDropItem && ClosestPlayer is not null) return orig(self, AlterRate(maxValue, ClosestPlayer!.GetModPlayer<SpymPlayer>().tallyMult+(BannerBuff ? 0.1f : 0f)));
-        if (Systems.SpymSystem.InUpdateTime && Main.netMode == NetmodeID.SinglePlayer) return orig(self, AlterRate(maxValue, Main.LocalPlayer.GetModPlayer<SpymPlayer>().eventsBoost));
+        if (_inDropItem && _closestPlayer is not null) return orig(self, Utility.AlterRate(maxValue, _closestPlayer.GetModPlayer<SpymPlayer>().lootMult + (_bannerBuff ? 0.1f : 0f)));
+        if (Systems.SpymSystem.InUpdateTime && Main.netMode == NetmodeID.SinglePlayer) return orig(self, Utility.AlterRate(maxValue, Main.LocalPlayer.GetModPlayer<SpymPlayer>().eventsMult));
         return orig(self, maxValue);
-    }
-
-    private static int AlterRate(int chanceDenominator, float mult) {
-        if (mult <= 1f) return chanceDenominator;
-        chanceDenominator = (int)System.MathF.Ceiling(System.MathF.Pow(2, System.MathF.Pow(System.MathF.Log2(chanceDenominator), 1/mult)));
-        return chanceDenominator;
     }
 }
 

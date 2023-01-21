@@ -57,7 +57,6 @@ public class SpymInfoDisplay : GlobalInfoDisplay {
         displayValue += Language.GetTextValue("Mods.SPYM.InfoDisplay.compass", recorded);
     }
 
-
     private void HookOreFinderData(On.Terraria.SceneMetrics.orig_UpdateOreFinderData orig, SceneMetrics self) {
         SpymPlayer spymPlayer = Main.LocalPlayer.GetModPlayer<SpymPlayer>();
         if (!spymPlayer.orePriority || spymPlayer.prioritizedOre == -1) {

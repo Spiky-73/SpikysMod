@@ -29,8 +29,6 @@ public static class Utility {
         return currentMin;
     }
 
-    public static bool BusyWithInvasion() => Main.invasionType != 0;
-
     public static bool BossAlive() {
         foreach (NPC npc in Main.npc) {
             if (npc.active && npc.boss) return true;
@@ -67,7 +65,7 @@ public static class Utility {
         _ => null
     };
 
-    public static void RunWithHiddenItem(Item[] chest, System.Predicate<Item> hidden, System.Action action) {
+    public static void RunWithHiddenItems(Item[] chest, System.Predicate<Item> hidden, System.Action action) {
         Dictionary<int, Item> hiddenItems = new();
         for (int i = 0; i < chest.Length; i++) {
             if (!hidden(chest[i])) continue;
@@ -78,5 +76,11 @@ public static class Utility {
         foreach ((int slot, Item item) in hiddenItems) {
             chest[slot] = item;
         }
+    }
+
+    public static int AlterRate(int chanceDenominator, float mult) {
+        if (mult <= 1f) return chanceDenominator;
+        chanceDenominator = (int)System.MathF.Ceiling(System.MathF.Pow(2, System.MathF.Pow(System.MathF.Log2(chanceDenominator), 1 / mult)));
+        return chanceDenominator;
     }
 }

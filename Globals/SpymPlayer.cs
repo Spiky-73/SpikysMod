@@ -1,7 +1,6 @@
 using Terraria;
 using Terraria.GameInput;
 using Terraria.ModLoader;
-using SPYM.Configs;
 using System.Collections.Generic;
 using Terraria.Audio;
 using Terraria.ID;
@@ -26,31 +25,22 @@ public class SpymPlayer : ModPlayer {
 
     private readonly HashSet<int> hiddenBuffs = new();
 
-    public bool dpsMeter;
+    public bool fixDamage;
+    public bool forcedSeasons;
+    public bool maxFishingPower;
 
-    public float timeWarp;
-
-    public float speedMult;
-
-    public float spawnRateBoost;
-    public float tallyMult;
-
-    public bool weatherRadio;
-
-    public float eventsBoost;
-    
     public bool orePriority;
     public int prioritizedOre = -1;
-
-    public bool fishGuide;
-
-    public int rightClickedSlot;
-
-    public int npcExtraRerolls;
-
     public bool biomeLock;
     public Vector2? biomeLockPosition;
 
+    public float timeMult;
+    public float speedMult;
+    public float spawnRateMult;
+    public float lootMult;
+    public float eventsMult;
+    public int npcExtraRerolls;
+    
     public int[] lastTypeOnSlot = new int[50];
 
     public override void Load() {
@@ -76,7 +66,7 @@ public class SpymPlayer : ModPlayer {
     }
 
 
-    public int leftClickedSlot;
+    private int leftClickedSlot;
     private static readonly MethodInfo FillEmptyMethod = typeof(Player).GetMethod("GetItem_FillEmptyInventorySlot", BindingFlags.Instance | BindingFlags.NonPublic, new Type[]{typeof(int), typeof(Item), typeof(GetItemSettings), typeof(Item), typeof(int)})!;
     private static readonly MethodInfo FillOccupiedMethod = typeof(Player).GetMethod("GetItem_FillIntoOccupiedSlot", BindingFlags.Instance | BindingFlags.NonPublic, new Type[]{typeof(int), typeof(Item), typeof(GetItemSettings), typeof(Item), typeof(int)})!;
 
@@ -85,7 +75,7 @@ public class SpymPlayer : ModPlayer {
         int type = Main.mouseItem.type, stack = Main.mouseItem.stack, prefix = Main.mouseItem.prefix;
         bool fav = Main.mouseItem.favorited;
         orig(inv, context, slot);
-        if(fav && context == 3 && inv[slot].type == type && inv[slot].stack == stack && inv[slot].prefix == prefix) inv[slot].favorited = true;
+        if(Configs.ServerConfig.Instance.favoritedItemsInChest && fav && context == 3 && inv[slot].type == type && inv[slot].stack == stack && inv[slot].prefix == prefix) inv[slot].favorited = true;
     }
     private void ItemSlotTranfer(ItemSlot.ItemTransferInfo info) {
         SpymPlayer spymPlayer = Main.LocalPlayer.GetModPlayer<SpymPlayer>();
@@ -95,9 +85,8 @@ public class SpymPlayer : ModPlayer {
         if ((info.FromContenxt != 21 || 0 > info.ToContext || info.ToContext >= 3) && (0 > info.FromContenxt || info.FromContenxt >= 3 || info.ToContext != 21)) return;
         spymPlayer.lastTypeOnSlot[leftClickedSlot] = info.ItemType;
     }
-
     private static Item HookGetItem(On.Terraria.Player.orig_GetItem orig, Player self, int plr, Item newItem, GetItemSettings settings) {
-        if (ClientConfig.Instance.smartPickup == SmartPickupLevel.Off || (ClientConfig.Instance.smartPickup == SmartPickupLevel.FavoriteOnly && !newItem.favorited) || newItem.noGrabDelay > 0 || newItem.uniqueStack && self.HasItem(newItem.type)) return orig(self, plr, newItem, settings);
+        if (Configs.ClientConfig.Instance.smartPickup ==Configs.SmartPickupLevel.Off || (Configs.ClientConfig.Instance.smartPickup == Configs.SmartPickupLevel.FavoriteOnly && !newItem.favorited) || newItem.noGrabDelay > 0 || newItem.uniqueStack && self.HasItem(newItem.type)) return orig(self, plr, newItem, settings);
         
         SpymPlayer spymPlayer = self.GetModPlayer<SpymPlayer>();
         int i = Array.IndexOf(spymPlayer.lastTypeOnSlot, newItem.type);
@@ -110,6 +99,7 @@ public class SpymPlayer : ModPlayer {
         else if(newItem.favorited || !spymPlayer.Player.inventory[i].favorited) (spymPlayer.Player.inventory[i], newItem) = (newItem, spymPlayer.Player.inventory[i]);
         return gotItem ? new() : orig(self, plr, newItem, settings);
     }
+
 
     private static bool _ilRedo;
     private static Vector2? _ilOriginalScanPosition;
@@ -173,7 +163,7 @@ public class SpymPlayer : ModPlayer {
     }
 
     private static string HookBuffTooltip(On.Terraria.Main.orig_GetBuffTooltip orig, Player player, int buffType)
-        => buffType == BuffID.MonsterBanner && ServerConfig.Instance.bannerBuff ? Language.GetTextValue("Mods.SPYM.Tooltips.bannerBuff") : orig(player, buffType);
+        => buffType == BuffID.MonsterBanner && Configs.ServerConfig.Instance.bannerBuff ? Language.GetTextValue("Mods.SPYM.Tooltips.bannerBuff") : orig(player, buffType);
 
     private void HookMinecartDamage(On.Terraria.Player.orig_GetMinecartDamage orig, Player self, float currentSpeed, out int damage, out float knockback){
         InCalledItemCheckOf = self.GetModPlayer<SpymPlayer>();
@@ -193,29 +183,29 @@ public class SpymPlayer : ModPlayer {
         else if(InProjDamagePlayer != -1) player = Main.player[InProjDamagePlayer].GetModPlayer<SpymPlayer>();
         else player = null;
 
-        if(player is null || !player.dpsMeter) return orig(dmg, luck);
+        if(player is null || !player.fixDamage) return orig(dmg, luck);
         return (int)Math.Round(dmg);
     }
 
     public override void ResetEffects() {
-        npcExtraRerolls = 0;
-        eventsBoost = 1f;
-        timeWarp = 1;
-        tallyMult = 1f;
-        spawnRateBoost = 1;
-        speedMult = 1;
-        weatherRadio = false;
-        fishGuide = false;
-        dpsMeter = false;
+        forcedSeasons = false;
+        maxFishingPower = false;
+        fixDamage = false;
         biomeLock = false;
         orePriority = false;
+        npcExtraRerolls = 0;
+        eventsMult = 1f;
+        timeMult = 1;
+        lootMult = 1f;
+        spawnRateMult = 1;
+        speedMult = 1;
 
         foreach (int buff in hiddenBuffs) Main.buffNoTimeDisplay[buff] = false;
         hiddenBuffs.Clear();
     }
 
     public override void PreUpdateBuffs() {
-        if (ServerConfig.Instance.frozenBuffs && (Utility.BossAlive() || NPC.BusyWithAnyInvasionOfSorts())) {
+        if (Configs.ServerConfig.Instance.frozenBuffs && (Utility.BossAlive() || NPC.BusyWithAnyInvasionOfSorts())) {
             for (int i = 0; i < Player.buffType.Length; i++) {
                 int buff = Player.buffType[i];
                 if (Main.debuff[buff] || Main.buffNoTimeDisplay[buff]) continue;
@@ -231,7 +221,7 @@ public class SpymPlayer : ModPlayer {
         Player.maxRunSpeed *= speedMult;
         Player.accRunSpeed *= speedMult;
 
-        Player.jumpSpeed *= MathF.Sqrt(speedMult);
+        Player.jumpSpeed *= MathF.Sqrt(speedMult); // ? exact formula
         Player.jumpSpeedBoost *= speedMult;
         
         Player.maxFallSpeed *= speedMult;
@@ -248,7 +238,7 @@ public class SpymPlayer : ModPlayer {
             if(kb.JustPressed && isAvailable(Player)) onClick(Player);
         }
 
-        if (Main.playerInventory && (!Main.HoverItem.IsAir || !Main.mouseItem.IsAir)) {
+        if (Configs.ClientConfig.Instance.itemSwap && Main.playerInventory && (!Main.HoverItem.IsAir || !Main.mouseItem.IsAir)) {
             int slot = -1;
             if (triggersSet.Hotbar1)       slot = 0;
             else if (triggersSet.Hotbar2)  slot = 1;
@@ -260,9 +250,9 @@ public class SpymPlayer : ModPlayer {
             else if (triggersSet.Hotbar8)  slot = 7;
             else if (triggersSet.Hotbar9)  slot = 8;
             else if (triggersSet.Hotbar10) slot = 9;
+            else swappedHotBar = false;
 
-            if(slot == -1) swappedHotBar = false;
-            else if(!swappedHotBar) {
+            if(slot != -1 && !swappedHotBar) {
                 swappedHotBar = true;
                 SwapHeld(slot);
             }
@@ -270,7 +260,7 @@ public class SpymPlayer : ModPlayer {
     }
 
     public override void SetControls() {
-        if (Main.mouseRight && Main.stackSplit == 1) Main.mouseRightRelease = true;
+        if (Configs.ClientConfig.Instance.fastRightClick && Main.mouseRight && Main.stackSplit == 1) Main.mouseRightRelease = true;
     }
 
     private void SwapHeld(int destSlot) {
@@ -280,19 +270,18 @@ public class SpymPlayer : ModPlayer {
         SoundEngine.PlaySound(SoundID.Grab);
     }
 
-    private void FavoritedBuff() => Utility.RunWithHiddenItem(Player.inventory, i => !i.favorited, Player.QuickBuff);
+    private void FavoritedBuff() => Utility.RunWithHiddenItems(Player.inventory, i => !i.favorited, Player.QuickBuff);
 
 
     public override bool PreItemCheck(){
-        bool canRightClick = Player.controlUseTile && !Player.tileInteractionHappened && Player.releaseUseItem && !Player.controlUseItem && !Player.mouseInterface && !CaptureManager.Instance.Active && !Main.HoveringOverAnNPC && !Main.SmartInteractShowingGenuine;
-        if (canRightClick && Main.HoverItem.IsAir && Player.altFunctionUse == 0 && (rightClickedSlot != -1 || Player.selectedItem < 10)) {
-            if (rightClickedSlot == -1) rightClickedSlot = Player.selectedItem;
-            ItemSlot.RightClick(Player.inventory, 0, rightClickedSlot);
+        if (Configs.ClientConfig.Instance.inventoryRightClick
+                && Player.controlUseTile && Player.releaseUseItem && !Player.controlUseItem && !Player.tileInteractionHappened
+                && !Player.mouseInterface && !CaptureManager.Instance.Active && !Main.HoveringOverAnNPC && !Main.SmartInteractShowingGenuine 
+                && Main.HoverItem.IsAir && Player.altFunctionUse == 0 && Player.selectedItem < 10) {
+            ItemSlot.RightClick(Player.inventory, 0, Player.selectedItem);
             if (!Main.mouseItem.IsAir) Player.DropSelectedItem();
             return false;
         }
-
-        rightClickedSlot = -1;
         InCalledItemCheckOf = this;
         return true;
     }
@@ -306,7 +295,7 @@ public class SpymPlayer : ModPlayer {
         bool mRR = Main.mouseRightRelease;
         int stack = Main.stackSplit;
         bool res = orig(inv, context, slot, player);
-        if (Main.mouseRightRelease != mRR && mRR) {
+        if (Configs.ClientConfig.Instance.fastRightClick && Main.mouseRightRelease != mRR && mRR) {
             Main.stackSplit = stack;
             ItemSlot.RefreshStackSplitCooldown();
         }
@@ -314,20 +303,20 @@ public class SpymPlayer : ModPlayer {
     }
 
 
-    private static bool HookHasUnityPotion(On.Terraria.Player.orig_HasUnityPotion orig, Player self) => (ServerConfig.Instance.infoAccPlus && self.HasItem(ItemID.CellPhone)) || orig(self);
+    private static bool HookHasUnityPotion(On.Terraria.Player.orig_HasUnityPotion orig, Player self) => (Configs.ServerConfig.Instance.infoAccPlus && self.HasItem(ItemID.CellPhone)) || orig(self);
     private static void HookTakeUnityPotion(On.Terraria.Player.orig_TakeUnityPotion orig, Player self) {
-        if (ServerConfig.Instance.infoAccPlus && !self.HasItem(ItemID.CellPhone)) orig(self);
+        if (Configs.ServerConfig.Instance.infoAccPlus && !self.HasItem(ItemID.CellPhone)) orig(self);
     }
 
 
     private static float HookGetPowerMultiplier(On.Terraria.Player.orig_Fishing_GetPowerMultiplier orig, Player self, Item pole, Item bait) {
-        if (Main.LocalPlayer.GetModPlayer<SpymPlayer>().fishGuide) return 1.2f * 1.1f * 1.3f * 1.1f; // Not done with the tml hook to prevent other global items to edit the value (+/-)
+        if (Main.LocalPlayer.GetModPlayer<SpymPlayer>().maxFishingPower) return 1.2f * 1.1f * 1.3f * 1.1f; // Not done with the tml hook to prevent other global items to edit the value (+/-)
         return orig(self, pole, bait);
     }
 
     private void HookGetFishingPondState(On.Terraria.Projectile.orig_GetFishingPondState orig, int x, int y, out bool lava, out bool honey, out int numWaters, out int chumCount) {
         orig(x, y, out lava, out honey, out numWaters, out chumCount);
-        if (Main.LocalPlayer.GetModPlayer<SpymPlayer>().fishGuide) numWaters = 300;
+        if (Main.LocalPlayer.GetModPlayer<SpymPlayer>().maxFishingPower) numWaters = 1000;
     }
 
 }
