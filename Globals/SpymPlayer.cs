@@ -34,14 +34,18 @@ public class SpymPlayer : ModPlayer {
     public bool biomeLock;
     public Vector2? biomeLockPosition;
 
-    public float timeMult;
+    public float timeMult; // TODO sync
     public float speedMult;
     public float spawnRateMult;
     public float lootMult;
     public float eventsMult;
     public int npcExtraRerolls;
-    
-    public int[] lastTypeOnSlot = new int[50];
+
+    public int[] lastTypeOnInv = new int[58];
+    public int chest; // reseted after the player updadte, later than player.chest
+    public int[] lastTypeOnChest = new int[40];
+
+    public SpymPlayer() => ResetEffects();
 
     public override void Load() {
         On.Terraria.Player.HasUnityPotion += HookHasUnityPotion;
@@ -63,12 +67,21 @@ public class SpymPlayer : ModPlayer {
         On.Terraria.UI.ItemSlot.LeftClick_ItemArray_int_int += HookLeftClick;
         ItemSlot.OnItemTransferred += ItemSlotTranfer;
         On.Terraria.Player.GetItem += HookGetItem;
+
+        On.Terraria.Player.OpenChest += HookOpenChest;
     }
 
+    private static void HookOpenChest(On.Terraria.Player.orig_OpenChest orig, Player self, int x, int y, int newChest) {
+        orig(self, x, y, newChest);
+        SpymPlayer spymPlayer = self.GetModPlayer<SpymPlayer>();
+        spymPlayer.lastTypeOnChest = new int[self.Chest()!.Length];
+    }
 
     private int leftClickedSlot;
     private static readonly MethodInfo FillEmptyMethod = typeof(Player).GetMethod("GetItem_FillEmptyInventorySlot", BindingFlags.Instance | BindingFlags.NonPublic, new Type[]{typeof(int), typeof(Item), typeof(GetItemSettings), typeof(Item), typeof(int)})!;
     private static readonly MethodInfo FillOccupiedMethod = typeof(Player).GetMethod("GetItem_FillIntoOccupiedSlot", BindingFlags.Instance | BindingFlags.NonPublic, new Type[]{typeof(int), typeof(Item), typeof(GetItemSettings), typeof(Item), typeof(int)})!;
+    private static readonly MethodInfo FillEmptVoidMethod = typeof(Player).GetMethod("GetItem_FillEmptyInventorySlot_VoidBag", BindingFlags.Instance | BindingFlags.NonPublic, new Type[]{typeof(int), typeof(Item[]), typeof(Item), typeof(GetItemSettings), typeof(Item), typeof(int)})!;
+    private static readonly MethodInfo FillOccupiedVoidMethod = typeof(Player).GetMethod("GetItem_FillIntoOccupiedSlot_VoidBag", BindingFlags.Instance | BindingFlags.NonPublic, new Type[]{typeof(int), typeof(Item[]), typeof(Item), typeof(GetItemSettings), typeof(Item), typeof(int)})!;
 
     private void HookLeftClick(On.Terraria.UI.ItemSlot.orig_LeftClick_ItemArray_int_int orig, Item[] inv, int context, int slot) {
         leftClickedSlot = slot;
@@ -79,25 +92,37 @@ public class SpymPlayer : ModPlayer {
     }
     private void ItemSlotTranfer(ItemSlot.ItemTransferInfo info) {
         SpymPlayer spymPlayer = Main.LocalPlayer.GetModPlayer<SpymPlayer>();
-        for (int i = 0; i < spymPlayer.lastTypeOnSlot.Length; i++) {
-            if(spymPlayer.lastTypeOnSlot[i] == info.ItemType) spymPlayer.lastTypeOnSlot[i] = 0;
+        for (int i = 0; i < spymPlayer.lastTypeOnInv.Length; i++) {
+            if(spymPlayer.lastTypeOnInv[i] == info.ItemType) spymPlayer.lastTypeOnInv[i] = 0;
         }
-        if ((info.FromContenxt != 21 || 0 > info.ToContext || info.ToContext >= 3) && (0 > info.FromContenxt || info.FromContenxt >= 3 || info.ToContext != 21)) return;
-        spymPlayer.lastTypeOnSlot[leftClickedSlot] = info.ItemType;
+        if (!(info.FromContenxt == 21 && info.ToContext.InRange(0,4))) return;
+        if(info.ToContext.InRange(3, 4)) spymPlayer.lastTypeOnChest[leftClickedSlot] = info.ItemType;
+        else spymPlayer.lastTypeOnInv[leftClickedSlot] = info.ItemType;
     }
     private static Item HookGetItem(On.Terraria.Player.orig_GetItem orig, Player self, int plr, Item newItem, GetItemSettings settings) {
-        if (Configs.ClientConfig.Instance.smartPickup ==Configs.SmartPickupLevel.Off || (Configs.ClientConfig.Instance.smartPickup == Configs.SmartPickupLevel.FavoriteOnly && !newItem.favorited) || newItem.noGrabDelay > 0 || newItem.uniqueStack && self.HasItem(newItem.type)) return orig(self, plr, newItem, settings);
+        if (Configs.ClientConfig.Instance.smartPickup == Configs.SmartPickupLevel.Off || (Configs.ClientConfig.Instance.smartPickup == Configs.SmartPickupLevel.FavoriteOnly && !newItem.favorited) || newItem.noGrabDelay > 0 || newItem.uniqueStack && self.HasItem(newItem.type)) return orig(self, plr, newItem, settings);
         
         SpymPlayer spymPlayer = self.GetModPlayer<SpymPlayer>();
-        int i = Array.IndexOf(spymPlayer.lastTypeOnSlot, newItem.type);
-        if(i == -1) return orig(self, plr, newItem, settings);
-
-        bool gotItem = false;
-        object[] args = new object[] { plr, newItem, settings, newItem, i };
-        if (spymPlayer.Player.inventory[i].type == ItemID.None) gotItem = (bool)FillEmptyMethod.Invoke(self, args)!;
-        else if (spymPlayer.Player.inventory[i].type == newItem.type && newItem.maxStack > 1) gotItem = (bool)FillOccupiedMethod.Invoke(self, args)!;
-        else if(newItem.favorited || !spymPlayer.Player.inventory[i].favorited) (spymPlayer.Player.inventory[i], newItem) = (newItem, spymPlayer.Player.inventory[i]);
-        return gotItem ? new() : orig(self, plr, newItem, settings);
+        int i;
+        if((i = Array.IndexOf(spymPlayer.lastTypeOnInv, newItem.type)) != -1) {
+            bool gotItem = false;
+            object[] args = new object[] { plr, newItem, settings, newItem, i };
+            if (spymPlayer.Player.inventory[i].type == ItemID.None) gotItem = (bool)FillEmptyMethod.Invoke(self, args)!;
+            else if (spymPlayer.Player.inventory[i].type == newItem.type && newItem.maxStack > 1) gotItem = (bool)FillOccupiedMethod.Invoke(self, args)!;
+            else if (newItem.favorited || !spymPlayer.Player.inventory[i].favorited) (spymPlayer.Player.inventory[i], newItem) = (newItem, spymPlayer.Player.inventory[i]);
+            return gotItem ? new() : orig(self, plr, newItem, settings);
+        }
+        else if(spymPlayer.chest != -1 && (i = Array.IndexOf(spymPlayer.lastTypeOnChest, newItem.type)) != -1){
+            bool gotItem = false;
+            Item[] chest = self.Chest(spymPlayer.chest);
+            object[] args = new object[] { plr, chest, newItem, settings, newItem, i };
+            if (spymPlayer.Player.inventory[i].type == ItemID.None) gotItem = (bool)FillEmptVoidMethod.Invoke(self, args)!;
+            else if (spymPlayer.Player.inventory[i].type == newItem.type && newItem.maxStack > 1) gotItem = (bool)FillOccupiedVoidMethod.Invoke(self, args)!;
+            else if (newItem.favorited || !spymPlayer.Player.inventory[i].favorited) (spymPlayer.Player.inventory[i], newItem) = (newItem, spymPlayer.Player.inventory[i]);
+            if(Main.netMode == NetmodeID.MultiplayerClient && self.chest > -1) NetMessage.SendData(MessageID.SyncChestItem, number: spymPlayer.chest, number2: i);
+            return gotItem ? new() : orig(self, plr, newItem, settings);
+        }
+        else return orig(self, plr, newItem, settings);
     }
 
 
@@ -288,6 +313,7 @@ public class SpymPlayer : ModPlayer {
 
     public override void PostItemCheck() {
         InCalledItemCheckOf = null;
+        chest = Player.chest;
     }
 
 

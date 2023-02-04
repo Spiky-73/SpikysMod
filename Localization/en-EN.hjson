@@ -126,6 +126,18 @@
                     t_favoriteItemsInChest: Item in chest can be favorited
                 }
             }
+            Keybinds: {
+                Favorited_Quick_buff.DisplayName: Favorited Quick buff
+                Prioritize_ore.DisplayName: Prioritize ore
+                Ruler_Line.DisplayName: Ruler Line
+                Ruler_Grid.DisplayName: Ruler Grid
+                Auto_Paint.DisplayName: Auto Paint
+                Auto_Actuator.DisplayName: Auto Actuator
+                Wire_display.DisplayName: Wire display
+                Forced_Wires.DisplayName: Forced Wires
+                Block_Swap.DisplayName: Block Swap
+                Biome_Torches.DisplayName: Biome Torches
+            }
         }
     }
 }

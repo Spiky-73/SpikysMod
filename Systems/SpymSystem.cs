@@ -43,14 +43,14 @@ public class SpymSystem : ModSystem {
             Main.halloween = true;
             Main.xMas = true;
             ForcedSeassons = true;
-            goto success;
+            orig();
+            return;
         }
         if(ForcedSeassons){
             Main.checkXMas();
             Main.checkHalloween();
             ForcedSeassons = false;
         }
-    success:
         orig();
     }
 
@@ -58,8 +58,34 @@ public class SpymSystem : ModSystem {
         => orig(currentRecipe, Configs.ClientConfig.Instance.filterRecipes || tryFittingItemInInventoryToAllowCrafting, out movedAnItemToAllowCrafting);
 
     public override void ModifyTimeRate(ref double timeRate, ref double tileUpdateRate, ref double eventUpdateRate) {
-        // TODO multiplayer
-        float mult = Main.LocalPlayer.GetModPlayer<Globals.SpymPlayer>().timeMult;
+        float mult;
+        switch (Main.netMode) {
+        case NetmodeID.SinglePlayer:
+            mult = Main.LocalPlayer.GetModPlayer<Globals.SpymPlayer>().timeMult;
+            break;
+        case NetmodeID.Server: // TODO multiplayer
+            mult = 1f;
+            // int total = 0;
+            // SortedDictionary<float, int> mults = new(new Utility.DescendingComparer<float>());
+            // foreach(Player player in Main.player){
+            //     if(!player.active || player.DeadOrGhost) continue;
+            //     float m = player.GetModPlayer<Globals.SpymPlayer>().timeMult;
+            //     mults[m] = mults.GetValueOrDefault(m)+1;
+            //     total++;
+            // }
+            // mult = 1f;
+            // int count = 0;
+            // foreach ((float m, int c) in mults) {
+            //     count += c;
+            //     if(c < total/2) continue;
+            //     mult = m;
+            //     break;
+            // }
+            break;
+        default:
+            return;
+        }
+
         timeRate *= mult;
         tileUpdateRate *= mult;
         eventUpdateRate *= mult;

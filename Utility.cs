@@ -5,6 +5,9 @@ using Terraria;
 namespace SPYM;
 public static class Utility {
 
+    public class DescendingComparer<T> : IComparer<T> where T : System.IComparable<T> {
+        public int Compare(T? x, T? y) => y is null ? 1 : y.CompareTo(x);
+    }
 
     public static Item? LastStack(this Player player, Item item, bool notArg = false) {
         for (int i = player.inventory.Length - 1 - 8; i >= 0; i--) {
@@ -16,6 +19,18 @@ public static class Utility {
                 return player.inventory[i];
         }
         return null;
+    }
+
+    public enum InclusionFlag {
+        Min = 0x01,
+        Max = 0x10,
+        Both = Min|Max
+    }
+
+    public static bool InRange<T>(this T self, T min, T max, InclusionFlag flags = InclusionFlag.Both) where T: System.IComparable<T> {
+        int l = self.CompareTo(min);
+        int r = self.CompareTo(max);
+        return (l > 0 || (flags.HasFlag(InclusionFlag.Min) && l == 0)) && (r < 0 || (flags.HasFlag(InclusionFlag.Max) && r == 0));
     }
 
     public static Item? SmallestStack(this Player player, Item item, bool notArg = false) {
@@ -39,24 +54,25 @@ public static class Utility {
     public static bool IsEquipable(this Item item)
         => item.headSlot > 0 || item.bodySlot > 0 || item.legSlot > 0 || item.accessory || Main.projHook[item.shoot] || item.mountType != -1 || (item.buffType > 0 && (Main.lightPet[item.buffType] || Main.vanityPet[item.buffType]));
 
-    public static int Snap(this int i, int increment) => (int)System.MathF.Round((float)i / increment) * increment;
 
     public enum SnapMode {
         Round,
         Ceiling,
-        FLoor
+        Floor
     }
+    public static int Snap(this int i, int increment) => (int)System.MathF.Round((float)i / increment) * increment;
     public static float Snap(this float f, float increment, SnapMode mode = SnapMode.Round) {
         float val = f / increment;
         return mode switch {
             SnapMode.Ceiling => System.MathF.Ceiling(val),
-            SnapMode.FLoor => System.MathF.Floor(val),
+            SnapMode.Floor => System.MathF.Floor(val),
             SnapMode.Round or _ => System.MathF.Round(val),
         }* increment;
     }
 
     public static bool InChest(this Player player, [MaybeNullWhen(false)] out Item[] chest) => (chest = player.Chest()) is not null;
-    public static Item[]? Chest(this Player player) => player.chest switch {
+    [return: NotNullIfNotNull("chest")]
+    public static Item[]? Chest(this Player player, int? chest = null) => (chest ?? player.chest) switch {
         > -1 => Main.chest[player.chest].item,
         -2 => player.bank.item,
         -3 => player.bank2.item,

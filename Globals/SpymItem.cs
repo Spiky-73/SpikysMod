@@ -138,7 +138,9 @@ public class SpymItem : GlobalItem {
             case ItemID.GoldWatch or ItemID.PlatinumWatch:
                 return true;
             case ItemID.WeatherRadio:
-                ChangeRain();
+                // TODO multiplayer
+                if (Main.raining) Main.StopRain();
+                else Main.StartRain();
                 return true;
             case ItemID.Sextant: // TODO multiplayer
                 // TODO only if event has been defeated
@@ -173,6 +175,7 @@ public class SpymItem : GlobalItem {
         SpymPlayer spymPlayer = player.GetModPlayer<SpymPlayer>();
         switch (item.type) {
         case ItemID.GoldWatch or ItemID.PlatinumWatch:
+            // TODO multiplayer
             spymPlayer.timeMult *= 10;
             break;
         case ItemID.CellPhone:
@@ -240,12 +243,6 @@ public class SpymItem : GlobalItem {
         if (smartStack == null) return;
         consumed.stack++;
         smartStack.stack--;
-    }
-
-    public static void ChangeRain() {
-        // TODO multiplayer
-        if (Main.raining) Main.StopRain();
-        else Main.StartRain();
     }
 }
 
