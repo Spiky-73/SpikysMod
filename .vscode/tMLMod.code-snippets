@@ -13,5 +13,15 @@
         "scope": "csharp",
         "prefix": "gi",
         "body": "${TM_CURRENT_LINE/\\s*(\\S+\\.)?([A-Z])?([A-Z]+(?![a-z]))?(\\S*).*/${2:/downcase}${3:/downcase}$4 = ModContent.GetInstance<$1$2$3$4>();/}",
+    },
+    "ModConfig Localization": {
+        "scope": "csharp",
+        "prefix": "lab",
+        "body": "Label(\\$\"\\${LocalizationHelper.${1:Configs}}.$0.Label\"), Tooltip(\\$\"\\${$1}.$0.Tooltip\")",
+    },
+    "Localization": {
+        "scope": "csharp",
+        "prefix": "loc",
+        "body": "\\$\"{LocKeys.${1:Root}}.$0\"",
     }
 }

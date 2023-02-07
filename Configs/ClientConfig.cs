@@ -12,21 +12,21 @@ public enum SmartPickupLevel {
 
 public class ClientConfig : ModConfig {
 
-
-    [DefaultValue(true), Label("$Mods.SPYM.Configs.Client.SmartConsume"), Tooltip("$Mods.SPYM.Configs.Client.t_smartConsume")]
-    public bool smartConsume;
-    [DefaultValue(true), Label("$Mods.SPYM.Configs.Client.SmartAmmo"), Tooltip("$Mods.SPYM.Configs.Client.t_smartAmmo")]
+    [DefaultValue(true), Label($"${LocKeys.ClientConfig}.smartConsume.Label"), Tooltip($"${LocKeys.ClientConfig}.smartConsume.Tooltip")]
+    public bool smartConsumption;
+    [DefaultValue(true), Label($"${LocKeys.ClientConfig}.smartAmmo.Label"), Tooltip($"${LocKeys.ClientConfig}.smartAmmo.Tooltip")]
     public bool smartAmmo;
-    [DefaultValue(SmartPickupLevel.FavoriteOnly), Label("$Mods.SPYM.Configs.Client.SmartPickup"), Tooltip("$Mods.SPYM.Configs.Client.t_smartPickup")]
+    [DefaultValue(SmartPickupLevel.FavoriteOnly), Label($"${LocKeys.ClientConfig}.smartPickup.Label"), Tooltip($"${LocKeys.ClientConfig}.smartPickup.Tooltip")]
     public SmartPickupLevel smartPickup;
-    [DefaultValue(true), Label("$Mods.SPYM.Configs.Client.ItemSwap"), Tooltip("$Mods.SPYM.Configs.Client.t_itemSwap")]
+    [DefaultValue(true), Label($"${LocKeys.ClientConfig}.itemSwap.Label"), Tooltip($"${LocKeys.ClientConfig}.itemSwap.Tooltip")]
     public bool itemSwap;
-    [DefaultValue(true), Label("$Mods.SPYM.Configs.Client.FastRightClick"), Tooltip("$Mods.SPYM.Configs.Client.t_fastRightClick")]
+    [DefaultValue(true), Label($"${LocKeys.ClientConfig}.fastRightClick.Label"), Tooltip($"${LocKeys.ClientConfig}.fastRightClick.Tooltip")]
     public bool fastRightClick;
-    [DefaultValue(true), Label("$Mods.SPYM.Configs.Client.FilterRecipes"), Tooltip("$Mods.SPYM.Configs.Client.t_filterRecipes")]
+    [DefaultValue(true), Label($"${LocKeys.ClientConfig}.itemRightClick.Label"), Tooltip($"${LocKeys.ClientConfig}.itemRightClick.Tooltip")]
+    public bool itemRightClick;
+    [DefaultValue(true), Label($"${LocKeys.ClientConfig}.filterRecipes.Label"), Tooltip($"${LocKeys.ClientConfig}.filterRecipes.Tooltip")]
     public bool filterRecipes;
-    [DefaultValue(true), Label("$Mods.SPYM.Configs.Client.InventoryRightClick"), Tooltip("$Mods.SPYM.Configs.Client.t_inventoryRightClick")]
-    public bool inventoryRightClick;
+
 
     public override ConfigScope Mode => ConfigScope.ClientSide;
 #nullable disable

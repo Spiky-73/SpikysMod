@@ -25,7 +25,7 @@ public class SpymInfoDisplay : GlobalInfoDisplay {
         if (!Main.LocalPlayer.GetModPlayer<SpymPlayer>().orePriority || Main.SceneMetrics.bestOre <= 0 || Main.SceneMetrics.ClosestOrePosition == null) return;
         
         float rawDistance = Main.SceneMetrics.ClosestOrePosition.Value.ToWorldCoordinates().Distance(Main.LocalPlayer.position);
-        displayValue += Language.GetTextValue("Mods.SPYM.InfoDisplay.metalDetector", Math.Max(20, (int)(rawDistance / 8).Snap(20)));
+        displayValue += Language.GetTextValue($"{LocKeys.InfoDisplays}.MetalDetectorRange", Math.Max(20, (int)(rawDistance / 8).Snap(20)));
     }
     public static void ModifyDisplay_DepthMeter(ref string displayValue) {
         SpymPlayer spymPlayer = Main.LocalPlayer.GetModPlayer<SpymPlayer>();
@@ -43,7 +43,7 @@ public class SpymInfoDisplay : GlobalInfoDisplay {
         depth = Math.Abs(depth);
         
         string recorded = ((depth != 0) ? Language.GetTextValue("GameUI.Depth", depth) : Language.GetTextValue("GameUI.DepthLevel")) + " " + text5;
-        displayValue += Language.GetTextValue("Mods.SPYM.InfoDisplay.compass", recorded);
+        displayValue += Language.GetTextValue(LocKeys.InfoDisplays+".RecordedPosition", recorded);
     }
     public static void ModifyDisplay_Compass(ref string displayValue) {
         SpymPlayer spymPlayer = Main.LocalPlayer.GetModPlayer<SpymPlayer>();
@@ -54,10 +54,10 @@ public class SpymInfoDisplay : GlobalInfoDisplay {
             < 0 => Language.GetTextValue("GameUI.CompassWest", -position),
             0 or _ => Language.GetTextValue("GameUI.CompassCenter")
         };
-        displayValue += Language.GetTextValue("Mods.SPYM.InfoDisplay.compass", recorded);
+        displayValue += Language.GetTextValue(LocKeys.InfoDisplays+".RecordedPosition", recorded);
     }
 
-    private void HookOreFinderData(On.Terraria.SceneMetrics.orig_UpdateOreFinderData orig, SceneMetrics self) {
+    private static void HookOreFinderData(On.Terraria.SceneMetrics.orig_UpdateOreFinderData orig, SceneMetrics self) {
         SpymPlayer spymPlayer = Main.LocalPlayer.GetModPlayer<SpymPlayer>();
         if (!spymPlayer.orePriority || spymPlayer.prioritizedOre == -1) {
             orig(self);

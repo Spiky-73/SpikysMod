@@ -5,22 +5,20 @@ using Terraria.ModLoader.Config;
 namespace SPYM.Configs;
 
 public class ServerConfig : ModConfig {
-
-    [DefaultValue(true), Label("$Mods.SPYM.Configs.Server.FrozenBuffs"), Tooltip("$Mods.SPYM.Configs.Server.t_frozenBuffs")]
+    [DefaultValue(true), Label($"${LocKeys.ServerConfig}.frozenBuffs.Label"), Tooltip($"${LocKeys.ServerConfig}.frozenBuffs.Tooltip")]
     public bool frozenBuffs;
-    [ReloadRequired, DefaultValue(true), Label("$Mods.SPYM.Configs.Server.BannerRecipes"), Tooltip("$Mods.SPYM.Configs.Server.t_bannerRecipes")]
+    [ReloadRequired, DefaultValue(true), Label($"${LocKeys.ServerConfig}.bannerRecipes.Label"), Tooltip($"${LocKeys.ServerConfig}.bannerRecipes.Tooltip")]
     public bool bannerRecipes;
-    [ReloadRequired, DefaultValue(0.25f), Label("$Mods.SPYM.Configs.Server.BannerRarity"), Tooltip("$Mods.SPYM.Configs.Server.t_bannerRarity")]
+    [ReloadRequired, DefaultValue(0.25f), Label($"${LocKeys.ServerConfig}.bannerRarity.Label"), Tooltip($"${LocKeys.ServerConfig}.bannerRarity.Tooltip")]
     public float bannerRarity;
-    [DefaultValue(true), Label("$Mods.SPYM.Configs.Server.BannerBuff"), Tooltip("$Mods.SPYM.Configs.Server.t_bannerBuff")]
+    [DefaultValue(true), Label($"${LocKeys.ServerConfig}.bannerBuff.Label"), Tooltip($"${LocKeys.ServerConfig}.bannerBuff.Tooltip")]
     public bool bannerBuff;
-    [ReloadRequired, DefaultValue(true), Label("$Mods.SPYM.Configs.Server.InfoAccPlus"), Tooltip("$Mods.SPYM.Configs.Server.t_infoAccPlus")]
+    [ReloadRequired, DefaultValue(true), Label($"${LocKeys.ServerConfig}.infoAccPlus.Label"), Tooltip($"${LocKeys.ServerConfig}.infoAccPlus.Tooltip")]
     public bool infoAccPlus;
-    [DefaultValue(true), Label("$Mods.SPYM.Configs.Server.BetterPeaceCandle"), Tooltip("$Mods.SPYM.Configs.Server.t_betterPeaceCandle")]
+    [DefaultValue(true), Label($"${LocKeys.ServerConfig}.betterPeaceCandle.Label"), Tooltip($"${LocKeys.ServerConfig}.betterPeaceCandle.Tooltip")]
     public bool betterCalming;
-    [DefaultValue(true), Label("$Mods.SPYM.Configs.Server.FavoriteItemsInChest"), Tooltip("$Mods.SPYM.Configs.Server.t_favoriteItemsInChest")]
+    [DefaultValue(true), Label($"${LocKeys.ServerConfig}.favoriteItemsInChest.Label"), Tooltip($"${LocKeys.ServerConfig}.favoriteItemsInChest.Tooltip")]
     public bool favoritedItemsInChest;
-
 
 
     public override ConfigScope Mode => ConfigScope.ServerSide;

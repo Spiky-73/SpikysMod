@@ -8,6 +8,9 @@ using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.ModLoader;
 using static Terraria.GameContent.ItemDropRules.Conditions;
+using MonoMod.Cil;
+using System.Reflection;
+using Mono.Cecil.Cil;
 
 namespace SPYM.Systems;
 
@@ -18,7 +21,7 @@ public class SpymSystem : ModSystem {
 
 
     public override void Load() {
-        On.Terraria.Recipe.FindRecipes += HookFindRecipes;
+        IL.Terraria.Recipe.FindRecipes += ILFindRecipes;
         On.Terraria.Main.TryAllowingToCraftRecipe += HookTryAllowingToCraftRecipe;
         On.Terraria.Main.UpdateTime += HookUpdateTime;
         On.Terraria.Main.UpdateTime_StartDay += HookUpdateTime_StartDay;
@@ -55,7 +58,7 @@ public class SpymSystem : ModSystem {
     }
 
     private static bool HookTryAllowingToCraftRecipe(On.Terraria.Main.orig_TryAllowingToCraftRecipe orig, Recipe currentRecipe, bool tryFittingItemInInventoryToAllowCrafting, out bool movedAnItemToAllowCrafting)
-        => orig(currentRecipe, Configs.ClientConfig.Instance.filterRecipes || tryFittingItemInInventoryToAllowCrafting, out movedAnItemToAllowCrafting);
+        => orig(currentRecipe, InventoryFeatures.FilterRecipes || tryFittingItemInInventoryToAllowCrafting, out movedAnItemToAllowCrafting);
 
     public override void ModifyTimeRate(ref double timeRate, ref double tileUpdateRate, ref double eventUpdateRate) {
         float mult;
@@ -159,7 +162,7 @@ public class SpymSystem : ModSystem {
                     builder.Append(", ");
                     if (i % 4 == 3 || (i == banners.Count - 3 && i % 4 == 2)) builder.Append('\n');
                 }
-                return Language.GetTextValue("Mods.SPYM.Tooltips.bannerGroup", builder.ToString(), names[^1]);
+                return Language.GetTextValue($"{LocKeys.RecipesGroups}.Banners.DisplayName", builder.ToString(), names[^1]);
             }
             Recipe r = Recipe.Create(recipe.ItemID, recipe.Stack).AddTile(recipe.Tile);
             if (banners.Count > 1) {
@@ -173,60 +176,28 @@ public class SpymSystem : ModSystem {
     }
 
     public override void PostAddRecipes() {
-        if (Configs.ServerConfig.Instance.infoAccPlus) {
-            foreach (Recipe recipe in Main.recipe) {
-                if (recipe.createItem.type != ItemID.CellPhone || recipe.requiredItem.Find(i => i.type == ItemID.PDA) == null) continue;
-                recipe.requiredItem.Add(new(ItemID.PotionOfReturn, 15));
-                recipe.requiredItem.Add(new(ItemID.WormholePotion, 15));
-            }
-        }
+        if (ImprovedInfoAcc.Enabled) ImprovedInfoAcc.PostAddRecipes();
     }
 
-    private void HookFindRecipes(On.Terraria.Recipe.orig_FindRecipes orig, bool canDelayCheck) {
-        if (!Configs.ClientConfig.Instance.filterRecipes && canDelayCheck || Main.mouseItem.IsAir) {
-            orig(canDelayCheck);
-            return;
-        }
-        
-        Item[] inv = Main.LocalPlayer.inventory;
-
-        (int slot, Item? replaced) = (-1, null);
-        if((slot = Array.FindIndex(inv, i => !i.IsAir)) != -1 || (slot = Array.FindIndex(inv, i => !i.material)) != -1){
-            replaced = inv[slot];
-            inv[slot] = Main.mouseItem;
+    private static void ILFindRecipes(ILContext il) {
+        static void FilteringFail(){
+            Configs.ClientConfig.Instance.filterRecipes = false;
+            SpikysMod.Instance.Logger.Warn("Recipe filtering hook could not be applied. This feature has been automaticaly disabled");
         }
 
-        orig(canDelayCheck);
-        if(slot == -1) return;
+        ILCursor cursor = new(il);
 
-        if (replaced != null) inv[slot] = replaced;
-        else inv[slot].TurnToAir();
+        if (cursor.TryGotoNext(MoveType.After, i => i.MatchStloc(6))) {
+            cursor.Emit(OpCodes.Ldloc_S, (byte)6);
+            cursor.EmitDelegate((Dictionary<int, int> materials) => {
+                if(InventoryFeatures.FilterRecipes) InventoryFeatures.AddCratingMaterials(materials);
+            });
+        } else FilteringFail();
 
-        int filterType = Main.mouseItem.type;
-
-        List<int> createsItem = new();
-        List<int> requiresItem = new();
-        List<int> other = new();
-
-        int focus = Main.availableRecipe[Main.focusRecipe];
-        for (int r = 0; r < Main.numAvailableRecipes; r++){
-            Recipe recipe = Main.recipe[Main.availableRecipe[r]];
-            if(recipe.createItem.type == filterType) createsItem.Add(Main.availableRecipe[r]);
-            else if(recipe.requiredItem.Exists(i => i.type == filterType)) requiresItem.Add(Main.availableRecipe[r]);
-            else if(recipe.acceptedGroups.Exists(g => RecipeGroup.recipeGroups[g].ContainsItem(filterType))) requiresItem.Add(Main.availableRecipe[r]);
-            else other.Add(Main.availableRecipe[r]);
-            Main.availableRecipe[r] = 0;
-        }
-        createsItem.CopyTo(Main.availableRecipe, 0);
-        requiresItem.CopyTo(Main.availableRecipe, createsItem.Count);
-        Main.numAvailableRecipes = createsItem.Count + requiresItem.Count;
-
-        float oldYoffset = Main.availableRecipeY[Main.focusRecipe];
-        Main.focusRecipe = Array.IndexOf(Main.availableRecipe, focus);
-        if(Main.focusRecipe == -1) Main.focusRecipe = Main.numAvailableRecipes <= 0 ? 0 : Math.Min(Main.numAvailableRecipes-1, focus);
-        float dYOff = Main.availableRecipeY[Main.focusRecipe] - oldYoffset;
-        for (int r = 0; r < Recipe.maxRecipes; r++) {
-            Main.availableRecipeY[r] -= dYOff;
-        }
+        MethodInfo recipeAvailableMethod = typeof(RecipeLoader).GetMethod(nameof(RecipeLoader.RecipeAvailable), BindingFlags.Public | BindingFlags.Static, new System.Type[]{typeof(Recipe)})!;
+        if(cursor.TryGotoNext(MoveType.After, i => i.MatchCall(recipeAvailableMethod))){
+            cursor.Emit(OpCodes.Ldloc_S, (byte)13);
+            cursor.EmitDelegate((bool available, int n) => available && (!InventoryFeatures.FilterRecipes || !InventoryFeatures.HideRecipe(Main.recipe[n])));
+        } else FilteringFail();
     }
 }

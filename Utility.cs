@@ -93,7 +93,7 @@ public static class Utility {
             chest[slot] = item;
         }
     }
-
+    
     public static int AlterRate(int chanceDenominator, float mult) {
         if (mult <= 1f) return chanceDenominator;
         chanceDenominator = (int)System.MathF.Ceiling(System.MathF.Pow(2, System.MathF.Pow(System.MathF.Log2(chanceDenominator), 1 / mult)));

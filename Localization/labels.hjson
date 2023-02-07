@@ -1,0 +1,25 @@
+{
+    Mods.SPYM : {
+        Configs: {
+            ClientConfig: {
+                smartConsume.Label: "[i:42] {$Mods.SPYM.Configs.ClientConfig.smartConsume.Name}"
+                smartAmmo.Label: "[i:1335] {$Mods.SPYM.Configs.ClientConfig.smartAmmo.Name}"
+                smartPickup.Label: "[i:75] {$Mods.SPYM.Configs.ClientConfig.smartPickup.Name}"
+                filterRecipes.Label: "[i: 36] {$Mods.SPYM.Configs.ClientConfig.filterRecipes.Name}"
+                itemSwap.Label: "[i:3620] {$Mods.SPYM.Configs.ClientConfig.itemSwap.Name}"
+                fastRightClick.Label: "[i:5075] {$Mods.SPYM.Configs.ClientConfig.fastRightClick.Name}"
+                itemRightClick.Label: "[i:1503] {$Mods.SPYM.Configs.ClientConfig.itemRightClick.Name}"
+
+            }
+            ServerConfig: {
+                frozenBuffs.Label: "[i:2348] {$Mods.SPYM.Configs.ServerConfig.frozenBuffs.Name}"
+                bannerRecipes.Label: "[i:1683] {$Mods.SPYM.Configs.ServerConfig.bannerRecipes.Name}"
+                bannerRarity.Label: "  {$Mods.SPYM.Configs.ServerConfig.bannerRarity.Name}"
+                bannerBuff.Label: "[i:2989] {$Mods.SPYM.Configs.ServerConfig.bannerBuff.Name}"
+                infoAccPlus.Label: "[i:3123] {$Mods.SPYM.Configs.ServerConfig.infoAccPlus.Name}"
+                betterPeaceCandle.Label: "[i:3117] {$Mods.SPYM.Configs.ServerConfig.betterPeaceCandle.Name}"
+                favoriteItemsInChest.Label: "[i:75] {$Mods.SPYM.Configs.ServerConfig.favoriteItemsInChest.Name}"
+            }
+        }
+    }
+}

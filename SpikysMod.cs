@@ -7,20 +7,16 @@ namespace SPYM;
 
 public class SpikysMod : Mod {
 
-	public static SpikysMod Instance => s_instance.TryGetTarget(out SpikysMod? instance) ? instance : null!;
-#nullable disable
-	public static ModKeybind FavoritedBuff;
-	public static ModKeybind MetalDetectorTarget;
-    public static List<(ModKeybind, BuilderAccTogglesUI.GetIsAvailablemethod, BuilderAccTogglesUI.PerformClickMethod)> BuilderAccToggles;
-#nullable restore
+    public static SpikysMod Instance => s_instance.TryGetTarget(out SpikysMod? instance) ? instance : null!;
+	public static ModKeybind PrioritizeOre = null!;
+    public static List<(ModKeybind, BuilderAccTogglesUI.GetIsAvailablemethod, BuilderAccTogglesUI.PerformClickMethod)> BuilderAccToggles = new();
 
 	private static void CycleAccState(Player player, int index, int cycle = 2) => player.builderAccStatus[index] = (player.builderAccStatus[index]+1) % cycle;
     public override void Load() {
         s_instance.SetTarget(this);
 
-        FavoritedBuff = KeybindLoader.RegisterKeybind(this, "Favorited Quick buff", Microsoft.Xna.Framework.Input.Keys.N);
-        MetalDetectorTarget = KeybindLoader.RegisterKeybind(this, "Prioritize ore", Microsoft.Xna.Framework.Input.Keys.LeftControl);
-
+        InventoryFeatures.Load();
+        PrioritizeOre = KeybindLoader.RegisterKeybind(this, "Prioritize ore", Microsoft.Xna.Framework.Input.Keys.LeftControl);
 
 
         BuilderAccToggles = new() {
