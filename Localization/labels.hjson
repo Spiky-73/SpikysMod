@@ -16,7 +16,7 @@
                 bannerRecipes.Label: "[i:1683] {$Mods.SPYM.Configs.ServerConfig.bannerRecipes.Name}"
                 bannerRarity.Label: "  {$Mods.SPYM.Configs.ServerConfig.bannerRarity.Name}"
                 bannerBuff.Label: "[i:2989] {$Mods.SPYM.Configs.ServerConfig.bannerBuff.Name}"
-                infoAccPlus.Label: "[i:3123] {$Mods.SPYM.Configs.ServerConfig.infoAccPlus.Name}"
+                infoAccPlus.Label: "[i:3123] {$Mods.SPYM.Configs.ServerConfig.Instance.infoAccPlus.Name}"
                 betterPeaceCandle.Label: "[i:3117] {$Mods.SPYM.Configs.ServerConfig.betterPeaceCandle.Name}"
                 favoriteItemsInChest.Label: "[i:75] {$Mods.SPYM.Configs.ServerConfig.favoriteItemsInChest.Name}"
             }

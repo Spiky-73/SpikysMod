@@ -77,7 +77,7 @@ public static class Utility {
         -2 => player.bank.item,
         -3 => player.bank2.item,
         -4 => player.bank3.item,
-        -6 => player.bank4.item,
+        -5 => player.bank4.item,
         _ => null
     };
 

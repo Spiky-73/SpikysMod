@@ -1,6 +1,6 @@
-namespace SPYM;
+namespace SPYM.Localization;
 
-public static class LocKeys {
+public static class Keys {
     public const string Root = $"Mods.{nameof(SPYM)}";
     public const string Configs = $"{Root}.{nameof(Configs)}";
     public const string Chat = $"{Root}.{nameof(Chat)}";

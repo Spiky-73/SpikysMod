@@ -12,19 +12,19 @@ public enum SmartPickupLevel {
 
 public class ClientConfig : ModConfig {
 
-    [DefaultValue(true), Label($"${LocKeys.ClientConfig}.smartConsume.Label"), Tooltip($"${LocKeys.ClientConfig}.smartConsume.Tooltip")]
+    [DefaultValue(true), Label($"${Localization.Keys.ClientConfig}.smartConsume.Label"), Tooltip($"${Localization.Keys.ClientConfig}.smartConsume.Tooltip")]
     public bool smartConsumption;
-    [DefaultValue(true), Label($"${LocKeys.ClientConfig}.smartAmmo.Label"), Tooltip($"${LocKeys.ClientConfig}.smartAmmo.Tooltip")]
+    [DefaultValue(true), Label($"${Localization.Keys.ClientConfig}.smartAmmo.Label"), Tooltip($"${Localization.Keys.ClientConfig}.smartAmmo.Tooltip")]
     public bool smartAmmo;
-    [DefaultValue(SmartPickupLevel.FavoriteOnly), Label($"${LocKeys.ClientConfig}.smartPickup.Label"), Tooltip($"${LocKeys.ClientConfig}.smartPickup.Tooltip")]
+    [DefaultValue(SmartPickupLevel.FavoriteOnly), Label($"${Localization.Keys.ClientConfig}.smartPickup.Label"), Tooltip($"${Localization.Keys.ClientConfig}.smartPickup.Tooltip")]
     public SmartPickupLevel smartPickup;
-    [DefaultValue(true), Label($"${LocKeys.ClientConfig}.itemSwap.Label"), Tooltip($"${LocKeys.ClientConfig}.itemSwap.Tooltip")]
+    [DefaultValue(true), Label($"${Localization.Keys.ClientConfig}.itemSwap.Label"), Tooltip($"${Localization.Keys.ClientConfig}.itemSwap.Tooltip")]
     public bool itemSwap;
-    [DefaultValue(true), Label($"${LocKeys.ClientConfig}.fastRightClick.Label"), Tooltip($"${LocKeys.ClientConfig}.fastRightClick.Tooltip")]
+    [DefaultValue(true), Label($"${Localization.Keys.ClientConfig}.fastRightClick.Label"), Tooltip($"${Localization.Keys.ClientConfig}.fastRightClick.Tooltip")]
     public bool fastRightClick;
-    [DefaultValue(true), Label($"${LocKeys.ClientConfig}.itemRightClick.Label"), Tooltip($"${LocKeys.ClientConfig}.itemRightClick.Tooltip")]
+    [DefaultValue(true), Label($"${Localization.Keys.ClientConfig}.itemRightClick.Label"), Tooltip($"${Localization.Keys.ClientConfig}.itemRightClick.Tooltip")]
     public bool itemRightClick;
-    [DefaultValue(true), Label($"${LocKeys.ClientConfig}.filterRecipes.Label"), Tooltip($"${LocKeys.ClientConfig}.filterRecipes.Tooltip")]
+    [DefaultValue(true), Label($"${Localization.Keys.ClientConfig}.filterRecipes.Label"), Tooltip($"${Localization.Keys.ClientConfig}.filterRecipes.Tooltip")]
     public bool filterRecipes;
 
 

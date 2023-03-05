@@ -1,5 +1,7 @@
 displayName = SpikysMod
 author = Spiky
 version = 0.1
+homepage = https://github.com/Spiky-73/SpikysMod
 
-buildIgnore = *.csproj, *.user, obj\*, bin\*, .vs\*, .git\*
+
+buildIgnore = *.csproj, *.user, obj\*, bin\*, .vscode\*, .vs\*, .git\*

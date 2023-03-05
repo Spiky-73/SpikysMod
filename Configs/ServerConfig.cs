@@ -5,19 +5,19 @@ using Terraria.ModLoader.Config;
 namespace SPYM.Configs;
 
 public class ServerConfig : ModConfig {
-    [DefaultValue(true), Label($"${LocKeys.ServerConfig}.frozenBuffs.Label"), Tooltip($"${LocKeys.ServerConfig}.frozenBuffs.Tooltip")]
+    [DefaultValue(true), Label($"${Localization.Keys.ServerConfig}.frozenBuffs.Label"), Tooltip($"${Localization.Keys.ServerConfig}.frozenBuffs.Tooltip")]
     public bool frozenBuffs;
-    [ReloadRequired, DefaultValue(true), Label($"${LocKeys.ServerConfig}.bannerRecipes.Label"), Tooltip($"${LocKeys.ServerConfig}.bannerRecipes.Tooltip")]
+    [ReloadRequired, DefaultValue(true), Label($"${Localization.Keys.ServerConfig}.bannerRecipes.Label"), Tooltip($"${Localization.Keys.ServerConfig}.bannerRecipes.Tooltip")]
     public bool bannerRecipes;
-    [ReloadRequired, DefaultValue(0.25f), Label($"${LocKeys.ServerConfig}.bannerRarity.Label"), Tooltip($"${LocKeys.ServerConfig}.bannerRarity.Tooltip")]
+    [ReloadRequired, DefaultValue(0.25f), Label($"${Localization.Keys.ServerConfig}.bannerRarity.Label"), Tooltip($"${Localization.Keys.ServerConfig}.bannerRarity.Tooltip")]
     public float bannerRarity;
-    [DefaultValue(true), Label($"${LocKeys.ServerConfig}.bannerBuff.Label"), Tooltip($"${LocKeys.ServerConfig}.bannerBuff.Tooltip")]
+    [DefaultValue(true), Label($"${Localization.Keys.ServerConfig}.bannerBuff.Label"), Tooltip($"${Localization.Keys.ServerConfig}.bannerBuff.Tooltip")]
     public bool bannerBuff;
-    [ReloadRequired, DefaultValue(true), Label($"${LocKeys.ServerConfig}.infoAccPlus.Label"), Tooltip($"${LocKeys.ServerConfig}.infoAccPlus.Tooltip")]
+    [ReloadRequired, DefaultValue(true), Label($"${Localization.Keys.ServerConfig}.infoAccPlus.Label"), Tooltip($"${Localization.Keys.ServerConfig}.infoAccPlus.Tooltip")]
     public bool infoAccPlus;
-    [DefaultValue(true), Label($"${LocKeys.ServerConfig}.betterPeaceCandle.Label"), Tooltip($"${LocKeys.ServerConfig}.betterPeaceCandle.Tooltip")]
+    [DefaultValue(true), Label($"${Localization.Keys.ServerConfig}.betterPeaceCandle.Label"), Tooltip($"${Localization.Keys.ServerConfig}.betterPeaceCandle.Tooltip")]
     public bool betterCalming;
-    [DefaultValue(true), Label($"${LocKeys.ServerConfig}.favoriteItemsInChest.Label"), Tooltip($"${LocKeys.ServerConfig}.favoriteItemsInChest.Tooltip")]
+    [DefaultValue(true), Label($"${Localization.Keys.ServerConfig}.favoriteItemsInChest.Label"), Tooltip($"${Localization.Keys.ServerConfig}.favoriteItemsInChest.Tooltip")]
     public bool favoritedItemsInChest;
 
 

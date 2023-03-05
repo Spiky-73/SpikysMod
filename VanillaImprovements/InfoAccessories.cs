@@ -5,9 +5,9 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-namespace SPYM;
+namespace SPYM.VanillaImprovements;
 
-public static class ImprovedInfoAcc {
+public static class InfoAccessories {
 
     public static bool Enabled => Configs.ServerConfig.Instance.infoAccPlus;
 
@@ -45,7 +45,7 @@ public static class ImprovedInfoAcc {
         void AddTooltip(string key, params object[] args) {
             tooltips.AddLine(
                 new(SpikysMod.Instance, key.ToUpperInvariant(),
-                    args is null ? Language.GetTextValue($"{LocKeys.Items}.{key}.Tooltip") : Language.GetTextValue($"{LocKeys.Items}.{key}.Tooltip", args)
+                    args is null ? Language.GetTextValue($"{Localization.Keys.Items}.{key}.Tooltip") : Language.GetTextValue($"{Localization.Keys.Items}.{key}.Tooltip", args)
                 ),
                 TooltipLineID.Tooltip
             );
@@ -109,15 +109,14 @@ public static class ImprovedInfoAcc {
             else Main.StartRain();
             return true;
         case ItemID.Sextant: // TODO multiplayer
-            // TODO only if event has been defeated
             Main.StopSlimeRain(false);
             Main.bloodMoon = false;
             Main.eclipse = false;
             Terraria.GameContent.Events.DD2Event.StopInvasion(false);
             Main.invasionType = 0;
             Main.stopMoonEvent();
-            if (Main.netMode == NetmodeID.SinglePlayer) Main.NewText(Language.GetTextValue($"{LocKeys.Chat}.eventCancelled"), Colors.RarityGreen.R, Colors.RarityGreen.G, Colors.RarityGreen.B);
-            else if (Main.netMode == NetmodeID.Server) Terraria.Chat.ChatHelper.BroadcastChatMessage(NetworkText.FromKey($"{LocKeys.Chat}.eventCancelled"), Colors.RarityGreen);
+            if (Main.netMode == NetmodeID.SinglePlayer) Main.NewText(Language.GetTextValue($"{Localization.Keys.Chat}.eventCancelled"), Colors.RarityGreen.R, Colors.RarityGreen.G, Colors.RarityGreen.B);
+            else if (Main.netMode == NetmodeID.Server) Terraria.Chat.ChatHelper.BroadcastChatMessage(NetworkText.FromKey($"{Localization.Keys.Chat}.eventCancelled"), Colors.RarityGreen);
             return true;
         case ItemID.Compass or ItemID.DepthMeter:
             SpymPlayer spymPlayer = player.GetModPlayer<SpymPlayer>();
@@ -159,7 +158,7 @@ public static class ImprovedInfoAcc {
             spymPlayer.spawnRateMult += 1.5f;
             break;
         case ItemID.TallyCounter:
-            spymPlayer.lootMult += 0.25f;
+            spymPlayer.lootBoost += 0.25f;
             break;
         case ItemID.LifeformAnalyzer:
             spymPlayer.npcExtraRerolls += 19;
@@ -168,7 +167,7 @@ public static class ImprovedInfoAcc {
             spymPlayer.speedMult += 0.5f;
             break;
         case ItemID.DPSMeter:
-            spymPlayer.fixDamage = true;
+            spymPlayer.fixedDamage = true;
             player.GetDamage(DamageClass.Generic) *= 1.05f;
             break;
         case ItemID.MetalDetector:
@@ -183,10 +182,10 @@ public static class ImprovedInfoAcc {
             spymPlayer.forcedSeasons = true;
             break;
         case ItemID.FishermansGuide:
-            spymPlayer.maxFishingPower = true; // TODO >>> redo
+            spymPlayer.minFishingPower = 1 + (1.2f*1.1f*1.3f*1.1f - 1)/2;
             break;
         case ItemID.Sextant:
-            spymPlayer.eventsMult += 0.5f;
+            spymPlayer.eventsBoost += 0.5f;
             break;
         case ItemID.Compass or ItemID.DepthMeter:
             spymPlayer.biomeLock = true;
@@ -196,7 +195,7 @@ public static class ImprovedInfoAcc {
 
     public static bool ForcedUnityPotion(Player player) => player.HasItem(ItemID.CellPhone);
 
-    public static void PostAddRecipes() {
+    public static void EditRecipes() {
         foreach (Recipe recipe in Main.recipe) {
             if (recipe.createItem.type != ItemID.CellPhone || recipe.requiredItem.Find(i => i.type == ItemID.PDA) == null) continue;
             recipe.requiredItem.Add(new(ItemID.PotionOfReturn, 15));
