@@ -13,6 +13,7 @@ namespace SPYM.Globals;
 
 public class SpymPlayer : ModPlayer {
 
+    // TODO sync player data
     public bool fixedDamage;
     public bool forcedSeasons;
     
@@ -24,7 +25,7 @@ public class SpymPlayer : ModPlayer {
     public bool biomeLock;
     public Vector2? biomeLockPosition;
 
-    public float timeMult; // TODO sync
+    public float timeMult;
     public float speedMult;
     public float spawnRateMult;
     public float lootBoost;
@@ -110,7 +111,8 @@ public class SpymPlayer : ModPlayer {
         Player.maxRunSpeed *= speedMult;
         Player.accRunSpeed *= speedMult;
 
-        Player.jumpSpeed *= System.MathF.Sqrt(speedMult); // ? exact formula
+        Player.jumpSpeed *= speedMult;
+        Player.jumpHeight = (int)(Player.jumpHeight/System.MathF.Pow(speedMult, 2));
         Player.jumpSpeedBoost *= speedMult;
         
         Player.maxFallSpeed *= speedMult;
@@ -175,8 +177,8 @@ public class SpymPlayer : ModPlayer {
 
         ILLabel redoLabel = cursor.DefineLabel();
 
-        cursor.Emit(OpCodes.Ldarga_S, ArgSettings);
-        cursor.EmitDelegate((ref SceneMetricsScanSettings settings) => {
+        cursor.Emit(OpCodes.Ldarg_S, ArgSettings);
+        cursor.EmitDelegate((SceneMetricsScanSettings settings) => {
             _ilOriginalScanPosition = null;
             _ilSpymPlayer = Main.LocalPlayer.GetModPlayer<SpymPlayer>();
             _ilRedo = Main.netMode != NetmodeID.Server
@@ -184,8 +186,8 @@ public class SpymPlayer : ModPlayer {
                 && _ilSpymPlayer.biomeLock && _ilSpymPlayer.biomeLockPosition.HasValue;
         });
         cursor.MarkLabel(redoLabel);
-        cursor.Emit(OpCodes.Ldarga_S, ArgSettings);
-        cursor.EmitDelegate((ref SceneMetricsScanSettings settings) => {
+        cursor.Emit(OpCodes.Ldarg_S, ArgSettings);
+        cursor.EmitDelegate((SceneMetricsScanSettings settings) => {
             if (_ilRedo) {
                 _ilOriginalScanPosition = settings.BiomeScanCenterPositionInWorld;
                 settings.BiomeScanCenterPositionInWorld = _ilSpymPlayer!.biomeLockPosition;
@@ -194,9 +196,10 @@ public class SpymPlayer : ModPlayer {
             } else if (_ilOriginalScanPosition.HasValue) {
                 settings.BiomeScanCenterPositionInWorld = _ilOriginalScanPosition;
                 settings.ScanOreFinderData = _ilScanOreFinderData;
-
             }
+            return settings;
         });
+        cursor.Emit(OpCodes.Starg_S, ArgSettings);
 
         cursor.GotoLabel(ifLabel!, MoveType.Before);
         cursor.EmitDelegate(() => {
@@ -206,7 +209,6 @@ public class SpymPlayer : ModPlayer {
         });
         cursor.Emit(OpCodes.Brtrue, redoLabel);
     }
-
 
     private static void HookMinecartDamage(On.Terraria.Player.orig_GetMinecartDamage orig, Player self, float currentSpeed, out int damage, out float knockback) {
         SpymSystem.FixedDamage = self.GetModPlayer<SpymPlayer>().fixedDamage;
