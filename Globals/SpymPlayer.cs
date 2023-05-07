@@ -51,7 +51,8 @@ public class SpymPlayer : ModPlayer {
         
         On.Terraria.Player.OpenChest += HookOpenChest;
         On.Terraria.UI.ItemSlot.LeftClick_ItemArray_int_int += HookLeftClick;
-        ItemSlot.OnItemTransferred += InventoryFeatures.Items.OnItemTranfer;
+        ItemSlot.OnItemTransferred += InventoryManagement.Items.OnItemTranfer;
+        ItemSlot.OnItemTransferred += VanillaImprovements.Chests.OnItemTranfer;
         On.Terraria.Player.GetItem += HookGetItem;
 
         On.Terraria.Main.GetBuffTooltip += HookBuffTooltip;
@@ -76,22 +77,23 @@ public class SpymPlayer : ModPlayer {
         spawnRateMult = 1;
         speedMult = 1;
 
-        InventoryFeatures.InventoryManagement.UnhideBuffs();
+        VanillaImprovements.Buffs.UnhideBuffs();
     }
 
     public override void SetControls() {
-        if (Configs.ClientConfig.Instance.fastRightClick) InventoryFeatures.InventoryManagement.AttemptFastRightClick();
+        if (Configs.InventoryManagement.Instance.fastRightClick) InventoryManagement.Actions.AttemptFastRightClick();
     }
+    // TODO add messages or sfxs
     public override void ProcessTriggers(TriggersSet triggersSet) {
-        InventoryFeatures.InventoryManagement.ProcessShortcuts(Player);
-        if (Configs.ClientConfig.Instance.itemSwap) InventoryFeatures.InventoryManagement.AttemptItemSwap(Player, triggersSet);
+        InventoryManagement.Actions.ProcessShortcuts(Player);
+        if (Configs.InventoryManagement.Instance.itemSwap) InventoryManagement.Actions.AttemptItemSwap(Player, triggersSet);
 
         if (orePriority && SpikysMod.PrioritizeOre.JustPressed && Player.HeldItem.pick > 0 && Player.IsTargetTileInItemRange(Player.HeldItem))
             prioritizedOre = Main.tile[Player.tileTargetX, Player.tileTargetY].TileType;
     }
 
     public override bool PreItemCheck() {
-        if (Configs.ClientConfig.Instance.itemRightClick && InventoryFeatures.InventoryManagement.AttemptItemRightClick(Player)) return false;
+        if (Configs.InventoryManagement.Instance.itemRightClick && InventoryManagement.Actions.AttemptItemRightClick(Player)) return false;
         SpymSystem.FixedDamage = fixedDamage;
         return true;
     }
@@ -100,11 +102,11 @@ public class SpymPlayer : ModPlayer {
     }
 
     public override void PostUpdate() {
-        InventoryFeatures.Items.PostUpdate(Player);
+        InventoryManagement.Items.PostUpdate(Player);
     }
 
     public override void PreUpdateBuffs() {
-        if (Configs.ServerConfig.Instance.frozenBuffs) InventoryFeatures.InventoryManagement.FreezeBuffs(Player);
+        if (Configs.VanillaImprovements.Instance.frozenBuffs) VanillaImprovements.Buffs.FreezeBuffs(Player);
     }
 
     public override void PostUpdateRunSpeeds() {
@@ -120,34 +122,34 @@ public class SpymPlayer : ModPlayer {
     }
 
 
+    private static void HookLeftClick(On.Terraria.UI.ItemSlot.orig_LeftClick_ItemArray_int_int orig, Item[] inv, int context, int slot) {
+        InventoryManagement.Items.OnSlotLeftClick(slot);
+        VanillaImprovements.Chests.OnSlotLeftClick();
+        orig(inv, context, slot);
+        if(Configs.VanillaImprovements.Instance.favoritedItemsInChest && (context == 3 || context == 4) && VanillaImprovements.Chests.DepositedFavItem) inv[slot].favorited = true;
+    }
     private static bool HookRightClick(On.Terraria.UI.ItemSlot.orig_RightClick_FindSpecialActions orig, Item[] inv, int context, int slot, Player player) {
         int stackSplit = Main.stackSplit;
         bool res = orig(inv, context, slot, player);
-        if (Configs.ClientConfig.Instance.fastRightClick) InventoryFeatures.InventoryManagement.FastRightClick(stackSplit);
+        if (Configs.InventoryManagement.Instance.fastRightClick) InventoryManagement.Actions.FastRightClick(stackSplit);
         return res;
     }
 
-
-    private static void HookOpenChest(On.Terraria.Player.orig_OpenChest orig, Player self, int x, int y, int newChest) {
-        orig(self, x, y, newChest);
-        InventoryFeatures.Items.OnOpenChest(self);
-    }
-    private static void HookLeftClick(On.Terraria.UI.ItemSlot.orig_LeftClick_ItemArray_int_int orig, Item[] inv, int context, int slot) {
-        InventoryFeatures.Items.OnSlotLeftClick(slot);
-        bool fav = Main.mouseItem.favorited;
-        orig(inv, context, slot);
-        if (context == 3 && Configs.ServerConfig.Instance.favoritedItemsInChest && fav) inv[slot].favorited = true;
-    }
-
     private static Item HookGetItem(On.Terraria.Player.orig_GetItem orig, Player self, int plr, Item newItem, GetItemSettings settings) {
-        if (InventoryFeatures.Items.SmartPickupEnabled(newItem) && InventoryFeatures.Items.OnGetItem(plr, self, ref newItem, settings)) return new();
+        if (InventoryManagement.Items.SmartPickupEnabled(newItem) && InventoryManagement.Items.OnGetItem(plr, self, ref newItem, settings)) return new();
         return orig(self, plr, newItem, settings);
     }
 
-
-    private static void HookRestock(On.Terraria.UI.ChestUI.orig_Restock orig) => Utility.RunWithHiddenItems(Main.LocalPlayer.Chest()!, i => i.favorited, () => orig());
-    private static void HookLootAll(On.Terraria.UI.ChestUI.orig_LootAll orig) => Utility.RunWithHiddenItems(Main.LocalPlayer.Chest()!, i => i.favorited, () => orig());
-
+    private static void HookOpenChest(On.Terraria.Player.orig_OpenChest orig, Player self, int x, int y, int newChest) {
+        orig(self, x, y, newChest);
+        InventoryManagement.Items.OnOpenChest(self);
+    }
+    private static void HookRestock(On.Terraria.UI.ChestUI.orig_Restock orig) {
+        if(Configs.VanillaImprovements.Instance.favoritedItemsInChest) Utility.RunWithHiddenItems(Main.LocalPlayer.Chest()!, i => i.favorited, () => orig());
+    }
+    private static void HookLootAll(On.Terraria.UI.ChestUI.orig_LootAll orig) {
+        if (Configs.VanillaImprovements.Instance.favoritedItemsInChest) Utility.RunWithHiddenItems(Main.LocalPlayer.Chest()!, i => i.favorited, () => orig());
+    }
 
     private static void HookUpdateBiomes(On.Terraria.Player.orig_UpdateBiomes orig, Player self) {
         SpymPlayer spymPlayer = self.GetModPlayer<SpymPlayer>();
@@ -210,6 +212,7 @@ public class SpymPlayer : ModPlayer {
         cursor.Emit(OpCodes.Brtrue, redoLabel);
     }
 
+
     private static void HookMinecartDamage(On.Terraria.Player.orig_GetMinecartDamage orig, Player self, float currentSpeed, out int damage, out float knockback) {
         SpymSystem.FixedDamage = self.GetModPlayer<SpymPlayer>().fixedDamage;
         orig(self, currentSpeed, out damage, out knockback);
@@ -230,13 +233,13 @@ public class SpymPlayer : ModPlayer {
     }
 
 
-    private static bool HookHasUnityPotion(On.Terraria.Player.orig_HasUnityPotion orig, Player self) => (Configs.ServerConfig.Instance.infoAccPlus && VanillaImprovements.InfoAccessories.ForcedUnityPotion(self)) || orig(self);
+    private static bool HookHasUnityPotion(On.Terraria.Player.orig_HasUnityPotion orig, Player self) => (Configs.VanillaImprovements.Instance.infoAccPlus && VanillaImprovements.InfoAccessories.ForcedUnityPotion(self)) || orig(self);
     private static void HookTakeUnityPotion(On.Terraria.Player.orig_TakeUnityPotion orig, Player self) {
-        if (Configs.ServerConfig.Instance.infoAccPlus && VanillaImprovements.InfoAccessories.ForcedUnityPotion(self)) return;
+        if (Configs.VanillaImprovements.Instance.infoAccPlus && VanillaImprovements.InfoAccessories.ForcedUnityPotion(self)) return;
         orig(self);
     }
 
 
     private static string HookBuffTooltip(On.Terraria.Main.orig_GetBuffTooltip orig, Player player, int buffType)
-        => buffType == BuffID.MonsterBanner && Configs.ServerConfig.Instance.bannerBuff ? Language.GetTextValue($"{Localization.Keys.Buffs}.Banner") : orig(player, buffType);
+        => buffType == BuffID.MonsterBanner && Configs.VanillaImprovements.Instance.bannerBuff ? Language.GetTextValue($"{Localization.Keys.Buffs}.Banner") : orig(player, buffType);
 }

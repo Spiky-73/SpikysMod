@@ -23,11 +23,12 @@ public class SpymInfoDisplay : GlobalInfoDisplay {
         else if(currentDisplay == InfoDisplay.DepthMeter) ModifyDisplay_DepthMeter(ref displayValue);
     }
 
+    public const int Increments = 25;
     public static void ModifyDisplay_MetalDetector(ref string displayValue) {
         if (!Main.LocalPlayer.GetModPlayer<SpymPlayer>().orePriority || Main.SceneMetrics.bestOre <= 0 || Main.SceneMetrics.ClosestOrePosition == null) return;
         
         float rawDistance = Main.SceneMetrics.ClosestOrePosition.Value.ToWorldCoordinates().Distance(Main.LocalPlayer.position);
-        displayValue += Language.GetTextValue($"{Localization.Keys.InfoDisplays}.MetalDetectorRange", System.Math.Max(20, (int)(rawDistance / 8).Snap(20)));
+        displayValue += " .oO!"[0..(5-System.Math.Min((int)(rawDistance/(Increments*8)), 5))];
     }
 
     public static void ModifyDisplay_DepthMeter(ref string displayValue) {

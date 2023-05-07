@@ -9,6 +9,6 @@ public static class Keys {
     public const string RecipesGroups = $"{Root}.{nameof(RecipesGroups)}";
     public const string InfoDisplays = $"{Root}.{nameof(InfoDisplays)}";
 
-    public const string ServerConfig = $"{Configs}.{nameof(SPYM.Configs.ServerConfig)}";
-    public const string ClientConfig = $"{Configs}.{nameof(SPYM.Configs.ClientConfig)}";
+    public const string VanillaImprovements = $"{Configs}.{nameof(SPYM.Configs.VanillaImprovements)}";
+    public const string InventoryManagement = $"{Configs}.{nameof(SPYM.Configs.InventoryManagement)}";
 }

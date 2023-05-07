@@ -22,7 +22,7 @@ public class SpymNPC : GlobalNPC {
 
     public override void EditSpawnRate(Player player, ref int spawnRate, ref int maxSpawns) {
         float mult = player.GetModPlayer<SpymPlayer>().spawnRateMult;
-        if (Utility.BossAlive() && Configs.ServerConfig.Instance.betterCalming && player.calmed || player.HasBuff(BuffID.PeaceCandle)) mult = 0;
+        if (Utility.BossAlive() && Configs.VanillaImprovements.Instance.betterCalming && player.calmed || player.HasBuff(BuffID.PeaceCandle)) mult = 0;
 
         if (mult == 0) maxSpawns = 0;
         else {
@@ -103,10 +103,8 @@ public class SpymNPC : GlobalNPC {
         cursor.Emit(OpCodes.Ldsfld, netModeField);
     }
 
-
     private static Vector2? _ilNpcPosition;
     private static void ILResolveRule(ILContext il) {
-        const byte ArgDropAttemptInfo = 2;
 
         ILCursor cursor = new(il);
         MethodInfo candropMethod = typeof(IItemDropRule).GetMethod(nameof(IItemDropRule.CanDrop), BindingFlags.Public | BindingFlags.Instance)!;
@@ -115,8 +113,8 @@ public class SpymNPC : GlobalNPC {
             return;
         }
         cursor.GotoPrev().GotoPrev();
-        cursor.Emit(OpCodes.Ldarga_S, ArgDropAttemptInfo);
-        cursor.EmitDelegate((ref DropAttemptInfo info) => {
+        cursor.Emit(OpCodes.Ldarg_2);
+        cursor.EmitDelegate((DropAttemptInfo info) => {
             _ilNpcPosition = null;
             SpymPlayer spymPlayer = info.player.GetModPlayer<SpymPlayer>();
             if (!spymPlayer.biomeLock || !spymPlayer.biomeLockPosition.HasValue) return;
@@ -124,8 +122,8 @@ public class SpymNPC : GlobalNPC {
             info.npc.Center = spymPlayer.biomeLockPosition.Value;
         });
         cursor.GotoNext(MoveType.After, i => i.MatchCallvirt(candropMethod));
-        cursor.Emit(OpCodes.Ldarga_S, ArgDropAttemptInfo);
-        cursor.EmitDelegate((bool res, ref DropAttemptInfo info) => {
+        cursor.Emit(OpCodes.Ldarg_2);
+        cursor.EmitDelegate((bool res, DropAttemptInfo info) => {
             if (_ilNpcPosition.HasValue) info.npc.Center = _ilNpcPosition.Value;
             return res;
         });
@@ -133,7 +131,7 @@ public class SpymNPC : GlobalNPC {
 
 
     private static void HookDropItem(On.Terraria.NPC.orig_NPCLoot_DropItems orig, NPC self, Player closestPlayer) {
-        bool bannerBuff = Configs.ServerConfig.Instance.bannerBuff && closestPlayer.HasNPCBannerBuff(Item.NPCtoBanner(self.BannerID()));
+        bool bannerBuff = Configs.VanillaImprovements.Instance.bannerBuff && closestPlayer.HasNPCBannerBuff(Item.NPCtoBanner(self.BannerID()));
         SpymSystem.AlteredRngRates = closestPlayer.GetModPlayer<SpymPlayer>().lootBoost + (bannerBuff ? 0.1f : 0f);
         orig(self, closestPlayer);
         SpymSystem.AlteredRngRates = null;

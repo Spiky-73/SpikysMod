@@ -43,16 +43,24 @@ public class SpymSystem : ModSystem {
         orig();
     }
 
-    // TODO multiplayer
     private static void HookUpdateTime_StartNight(On.Terraria.Main.orig_UpdateTime_StartNight orig, ref bool stopEvents) {
-        AlteredRngRates = Main.LocalPlayer.GetModPlayer<SpymPlayer>().eventsBoost;
+        AlterEventChance();
         orig(ref stopEvents);
         AlteredRngRates = null;
     }
     private static void HookUpdateTime_StartDay(On.Terraria.Main.orig_UpdateTime_StartDay orig, ref bool stopEvents) {
-        AlteredRngRates = Main.LocalPlayer.GetModPlayer<SpymPlayer>().eventsBoost;
+        AlterEventChance();
         orig(ref stopEvents);
         AlteredRngRates = null;
+    }
+    private static void AlterEventChance(){
+        switch (Main.netMode) {
+        case NetmodeID.SinglePlayer:
+            AlteredRngRates = Main.LocalPlayer.GetModPlayer<SpymPlayer>().eventsBoost;
+            return;
+        case NetmodeID.Server: // TODO multiplayer
+            return;
+        }
     }
 
     public override void ModifyTimeRate(ref double timeRate, ref double tileUpdateRate, ref double eventUpdateRate) {
@@ -63,22 +71,6 @@ public class SpymSystem : ModSystem {
             break;
         case NetmodeID.Server: // TODO multiplayer
             mult = 1f;
-            // int total = 0;
-            // SortedDictionary<float, int> mults = new(new Utility.DescendingComparer<float>());
-            // foreach(Player player in Main.player){
-            //     if(!player.active || player.DeadOrGhost) continue;
-            //     float m = player.GetModPlayer<Globals.SpymPlayer>().timeMult;
-            //     mults[m] = mults.GetValueOrDefault(m)+1;
-            //     total++;
-            // }
-            // mult = 1f;
-            // int count = 0;
-            // foreach ((float m, int c) in mults) {
-            //     count += c;
-            //     if(c < total/2) continue;
-            //     mult = m;
-            //     break;
-            // }
             break;
         default:
             return;
@@ -91,10 +83,10 @@ public class SpymSystem : ModSystem {
 
 
     public override void AddRecipes() {
-        if(Configs.ServerConfig.Instance.bannerRecipes) InventoryFeatures.Chests.AddBannerRecipes();
+        if(Configs.VanillaImprovements.Instance.bannerRecipes) VanillaImprovements.Chests.AddBannerRecipes();
     }
     public override void PostAddRecipes() {
-        if (Configs.ServerConfig.Instance.infoAccPlus) VanillaImprovements.InfoAccessories.EditRecipes();
+        if (Configs.VanillaImprovements.Instance.infoAccPlus) VanillaImprovements.InfoAccessories.EditRecipes();
     }
 
 
@@ -107,17 +99,17 @@ public class SpymSystem : ModSystem {
         }
         cursor.Emit(OpCodes.Ldloc_S, (byte)6);
         cursor.EmitDelegate((Dictionary<int, int> materials) => {
-            if (Configs.ClientConfig.Instance.filterRecipes) InventoryFeatures.Chests.AddCratingMaterials(materials);
+            if (Configs.InventoryManagement.Instance.filterRecipes) InventoryManagement.Chests.AddCratingMaterials(materials);
         });
 
         MethodInfo recipeAvailableMethod = typeof(RecipeLoader).GetMethod(nameof(RecipeLoader.RecipeAvailable), BindingFlags.Public | BindingFlags.Static, new System.Type[]{typeof(Recipe)})!;
         cursor.GotoNext(MoveType.After, i => i.MatchCall(recipeAvailableMethod));
         cursor.Emit(OpCodes.Ldloc_S, (byte)13);
-        cursor.EmitDelegate((bool available, int n) => available && (!Configs.ClientConfig.Instance.filterRecipes || !InventoryFeatures.Chests.HideRecipe(Main.recipe[n])));
+        cursor.EmitDelegate((bool available, int n) => available && (!Configs.InventoryManagement.Instance.filterRecipes || !InventoryManagement.Chests.HideRecipe(Main.recipe[n])));
     }
 
     private static bool HookTryAllowingToCraftRecipe(On.Terraria.Main.orig_TryAllowingToCraftRecipe orig, Recipe currentRecipe, bool tryFittingItemInInventoryToAllowCrafting, out bool movedAnItemToAllowCrafting)
-        => orig(currentRecipe, Configs.ClientConfig.Instance.filterRecipes || tryFittingItemInInventoryToAllowCrafting, out movedAnItemToAllowCrafting);
+        => orig(currentRecipe, Configs.InventoryManagement.Instance.filterRecipes || tryFittingItemInInventoryToAllowCrafting, out movedAnItemToAllowCrafting);
 
 
     public static bool FixedDamage { get; set; }
@@ -128,7 +120,7 @@ public class SpymSystem : ModSystem {
 
     public static float? AlteredRngRates { get; set; }
     private static int HookRngNext_int(On.Terraria.Utilities.UnifiedRandom.orig_Next_int orig, Terraria.Utilities.UnifiedRandom self, int maxValue) {
-        if (AlteredRngRates.HasValue) return orig(self, Utility.AlterRate(maxValue, Main.LocalPlayer.GetModPlayer<SpymPlayer>().eventsBoost));
+        if (AlteredRngRates.HasValue) return orig(self, Utility.AlterRate(maxValue, AlteredRngRates.Value));
         return orig(self, maxValue);
     }
 }

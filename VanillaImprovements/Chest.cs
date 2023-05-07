@@ -7,13 +7,13 @@ using Terraria.ID;
 using System.Text;
 using Terraria.Localization;
 using System.Linq;
+using Terraria.UI;
 
-namespace SPYM.InventoryFeatures;
+namespace SPYM.VanillaImprovements;
 
 
 public static class Chests {
 
-    private record struct BannerRecipe(int ItemID, int Stack, int Tile, int BannerCount);
     public static void AddBannerRecipes() {
         Dictionary<int, Dictionary<int, DropRateInfo>> drops = new();
         for (int type = -65; type < NPCLoader.NPCCount - 65; type++) {
@@ -37,15 +37,15 @@ public static class Chests {
         Dictionary<BannerRecipe, HashSet<int>> recipes = new();
         foreach ((int banner, Dictionary<int, DropRateInfo> bannerDrops) in drops) {
             foreach ((int item, DropRateInfo drop) in bannerDrops) {
-                if (drop.dropRate > Configs.ServerConfig.Instance.bannerRarity) continue;
+                if (drop.dropRate > Configs.VanillaImprovements.Instance.bannerRarity) continue;
                 int amount = (int)System.MathF.Ceiling((drop.stackMin - 1 + drop.stackMax) / 2f);
 
                 int stack, mat;
                 if (drop.dropRate >= 1 / 50f) {
-                    stack = System.Math.Min(new Item(item).maxStack, (int)(amount * drop.dropRate * 50));
+                    stack = System.Math.Clamp((int)(amount * drop.dropRate * 50 * Configs.VanillaImprovements.Instance.bannerValue), 1, new Item(item).maxStack);
                     mat = 1;
                 } else {
-                    float count = 1f / drop.dropRate / 50f;
+                    float count = 1f / drop.dropRate / (50f * Configs.VanillaImprovements.Instance.bannerValue);
                     if (count > 7f) count = 7f + System.MathF.Log2(count - 7f);
                     if (count > 10f) count = count.Snap(5f, Utility.SnapMode.Ceiling);
                     else count = System.MathF.Ceiling(count);
@@ -77,6 +77,7 @@ public static class Chests {
                 }
                 return Language.GetTextValue($"{Localization.Keys.RecipesGroups}.Banners.DisplayName", builder.ToString(), names[^1]);
             }
+
             Recipe r = Recipe.Create(recipe.ItemID, recipe.Stack).AddTile(recipe.Tile);
             if (banners.Count > 1) {
                 List<int> bannerItems = new();
@@ -88,16 +89,10 @@ public static class Chests {
         }
     }
 
+    public static bool DepositedFavItem { get; private set; }
+    public static void OnSlotLeftClick() => DepositedFavItem = Main.mouseItem.favorited;
+    public static void OnItemTranfer(ItemSlot.ItemTransferInfo info) => DepositedFavItem &= info.FromContenxt == 21 && info.ToContext.InRange(0, 4);
 
-    public static void AddCratingMaterials(Dictionary<int, int> materials) {
-        if (!Main.mouseItem.IsAir) materials[Main.mouseItem.netID] = materials.GetValueOrDefault(Main.mouseItem.netID) + Main.mouseItem.stack;
-    }
 
-
-    public static bool HideRecipe(Recipe recipe) {
-        if (Main.mouseItem.IsAir) return false;
-        int filterType = Main.mouseItem.type;
-        if (recipe.createItem.type == filterType || recipe.requiredItem.Exists(i => i.type == filterType) || recipe.acceptedGroups.Exists(g => RecipeGroup.recipeGroups[g].ContainsItem(filterType))) return false;
-        return true;
-    }
+    private record struct BannerRecipe(int ItemID, int Stack, int Tile, int BannerCount);
 }

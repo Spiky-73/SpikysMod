@@ -4,16 +4,17 @@ namespace SPYM;
 
 public class SpikysMod : Mod {
 
-    public static SpikysMod Instance => s_instance.TryGetTarget(out SpikysMod? instance) ? instance : null!;
-	public static ModKeybind PrioritizeOre = null!;
+    public static SpikysMod Instance { get; private set; } = null!;
+    public static ModKeybind PrioritizeOre = null!;
 
     public override void Load() {
-        s_instance.SetTarget(this);
+        Instance = this;
 
-        InventoryFeatures.InventoryManagement.Load();
+        InventoryManagement.Actions.Load();
         PrioritizeOre = KeybindLoader.RegisterKeybind(this, "Prioritize ore", Microsoft.Xna.Framework.Input.Keys.LeftControl);
     }
 
-    private static readonly System.WeakReference<SpikysMod> s_instance = new(null!);
-
+    public override void Unload() {
+        Instance = null!;
+    }
 }

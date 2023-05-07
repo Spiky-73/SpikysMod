@@ -3,7 +3,7 @@ using Terraria;
 using Terraria.ID;
 using Terraria.UI;
 
-namespace SPYM.InventoryFeatures;
+namespace SPYM.InventoryManagement;
 
 public static class Items {
 
@@ -14,12 +14,12 @@ public static class Items {
         smartStack.stack--;
     }
 
-
-    public static bool SmartPickupEnabled(Item item) => Configs.ClientConfig.Instance.smartPickup switch {
+    public static bool SmartPickupEnabled(Item item) => Configs.InventoryManagement.Instance.smartPickup switch {
         Configs.SmartPickupLevel.AllItems => true,
         Configs.SmartPickupLevel.FavoriteOnly => item.favorited,
         Configs.SmartPickupLevel.Off or _ => false
     };
+
     public static bool OnGetItem(int plr, Player player, ref Item newItem, GetItemSettings settings) {
         int i;
         bool gotItems = false;
@@ -43,16 +43,18 @@ public static class Items {
 
     public static void OnOpenChest(Player player) => _lastTypeOnChest = new int[player.Chest()!.Length];
     public static void PostUpdate(Player player) => _chest = player.chest;
-    public static void OnSlotLeftClick(int slot) => _leftClickedSlot = slot;
+    public static void OnSlotLeftClick(int slot) => _leftClickedSlot = slot; 
+
     public static void OnItemTranfer(ItemSlot.ItemTransferInfo info) {
-        if (info.FromContenxt != 21 || !info.ToContext.InRange(0, 4)) return;
+        if (!info.FromContenxt.InRange(0, 4) || info.ToContext != 21) return;
+
         for (int i = 0; i < _lastTypeOnInv.Length; i++) {
             if (_lastTypeOnInv[i] == info.ItemType) _lastTypeOnInv[i] = 0;
         }
         for (int i = 0; i < _lastTypeOnChest.Length; i++) {
             if (_lastTypeOnInv[i] == info.ItemType) _lastTypeOnInv[i] = 0;
         }
-        if (info.ToContext.InRange(0, 2)) _lastTypeOnInv[_leftClickedSlot] = info.ItemType;
+        if (info.FromContenxt.InRange(0, 2)) _lastTypeOnInv[_leftClickedSlot] = info.ItemType;
         else _lastTypeOnChest[_leftClickedSlot] = info.ItemType;
     }
 

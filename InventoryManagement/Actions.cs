@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Reflection;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent.UI;
@@ -8,17 +7,14 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-namespace SPYM.InventoryFeatures;
+namespace SPYM.InventoryManagement;
 
-public static class InventoryManagement {
+public static class Actions {
 
     public static ModKeybind FavoritedBuffKb { get; private set; } = null!;
     public static List<(ModKeybind, BuilderAccTogglesUI.GetIsAvailablemethod, BuilderAccTogglesUI.PerformClickMethod)> BuilderAccToggles { get; private set; } = null!;
 
     public static void Load() {
-        bool[] canFavoriteAt = (bool[])typeof(ItemSlot).GetField("canFavoriteAt", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
-        canFavoriteAt[3] = true;
-
         FavoritedBuffKb = KeybindLoader.RegisterKeybind(SpikysMod.Instance, "Favorited Quick buff", Microsoft.Xna.Framework.Input.Keys.N);
 
         BuilderAccToggles = new() { (
@@ -67,8 +63,6 @@ public static class InventoryManagement {
         foreach ((ModKeybind kb, BuilderAccTogglesUI.GetIsAvailablemethod isAvailable, BuilderAccTogglesUI.PerformClickMethod onClick) in BuilderAccToggles) {
             if (kb.JustPressed && isAvailable(player)) onClick(player);
         }
-
-
     }
 
     public static void FavoritedBuff(Player player) => Utility.RunWithHiddenItems(player.inventory, i => !i.favorited, player.QuickBuff);
@@ -101,15 +95,16 @@ public static class InventoryManagement {
         _swapped = true;
         SwapHeldItem(player, slot);
     }
-  
 
     public static bool AttemptItemRightClick(Player player) {
         if (!player.controlUseTile || !player.releaseUseItem || player.controlUseItem || player.tileInteractionHappened
                 || player.mouseInterface || Terraria.Graphics.Capture.CaptureManager.Instance.Active || Main.HoveringOverAnNPC || Main.SmartInteractShowingGenuine
                 || !Main.HoverItem.IsAir || player.altFunctionUse != 0 || player.selectedItem >= 10)
             return false;
+        int split = Main.stackSplit;
+        Main.stackSplit = 2;
         ItemSlot.RightClick(player.inventory, 0, player.selectedItem);
-        if (!Main.mouseItem.IsAir) player.DropSelectedItem();
+        if(Main.stackSplit == 2) Main.stackSplit = split;
         return true;
     }
 
@@ -125,25 +120,5 @@ public static class InventoryManagement {
     }
 
 
-    public static void FreezeBuffs(Player Player) {
-        if (!Utility.BossAlive() && !NPC.BusyWithAnyInvasionOfSorts()) return;
-        
-        for (int i = 0; i < Player.buffType.Length; i++) {
-            int buff = Player.buffType[i];
-            if (!_hiddenBuffs.Contains(buff) && (Main.debuff[buff] || Main.buffNoTimeDisplay[buff])) continue;
-
-            _hiddenBuffs.Add(buff);
-            Main.buffNoTimeDisplay[buff] = true;
-            Player.buffTime[i] += 1;
-        }
-    }
-
-    public static void UnhideBuffs(){
-        foreach (int buff in _hiddenBuffs) Main.buffNoTimeDisplay[buff] = false;
-        _hiddenBuffs.Clear();
-    }
-
-
     private static bool _swapped;
-    private static readonly HashSet<int> _hiddenBuffs = new();
 }

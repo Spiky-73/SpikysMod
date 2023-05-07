@@ -9,7 +9,7 @@ namespace SPYM.VanillaImprovements;
 
 public static class InfoAccessories {
 
-    public static bool Enabled => Configs.ServerConfig.Instance.infoAccPlus;
+    public static bool Enabled => Configs.VanillaImprovements.Instance.infoAccPlus;
 
     public static void SetDefaults(Item item) {
         switch (item.type) {
@@ -42,7 +42,7 @@ public static class InfoAccessories {
         }
     }
     public static void ModifyTooltips(Item item, List<TooltipLine> tooltips) {
-        void AddTooltip(string key, params object[] args) {
+        void AddItemTooltip(string key, params object[] args) {
             tooltips.AddLine(
                 new(SpikysMod.Instance, key.ToUpperInvariant(),
                     args is null ? Language.GetTextValue($"{Localization.Keys.Items}.{key}.Tooltip") : Language.GetTextValue($"{Localization.Keys.Items}.{key}.Tooltip", args)
@@ -53,42 +53,41 @@ public static class InfoAccessories {
 
         switch (item.type) {
         case ItemID.GoldWatch or ItemID.PlatinumWatch:
-            AddTooltip("Watch");
+            AddItemTooltip(nameof(ItemID.GoldWatch));
             break;
         case ItemID.Radar:
-            AddTooltip("Radar");
+            AddItemTooltip(nameof(ItemID.Radar));
             break;
         case ItemID.TallyCounter:
-            AddTooltip("TallyCounter");
+            AddItemTooltip(nameof(ItemID.TallyCounter));
             break;
         case ItemID.LifeformAnalyzer:
-            AddTooltip("LifeformAnalyzer");
+            AddItemTooltip(nameof(ItemID.LifeformAnalyzer));
             break;
         case ItemID.Stopwatch:
-            AddTooltip("Stopwatch");
+            AddItemTooltip(nameof(ItemID.Stopwatch));
             break;
         case ItemID.MetalDetector:
             List<string> kb = SpikysMod.PrioritizeOre.GetAssignedKeys();
-            AddTooltip("MetalDetector", kb.Count == 0 ? Lang.menu[195].Value : kb[0]);
+            AddItemTooltip(nameof(ItemID.MetalDetector), kb.Count == 0 ? Lang.menu[195].Value : kb[0]);
             break;
         case ItemID.DPSMeter:
-            AddTooltip("multiplicative", 5);
-            AddTooltip("DPSMeter");
+            AddItemTooltip(nameof(ItemID.DPSMeter));
             break;
         case ItemID.WeatherRadio:
-            AddTooltip("WeatherRadio");
+            AddItemTooltip(nameof(ItemID.WeatherRadio));
             break;
         case ItemID.FishermansGuide:
-            AddTooltip("FishermansGuide");
+            AddItemTooltip(nameof(ItemID.FishermansGuide));
             break;
         case ItemID.Sextant:
-            AddTooltip("Sextant");
+            AddItemTooltip(nameof(ItemID.Sextant));
             break;
         case ItemID.CellPhone:
-            AddTooltip("CellPhone");
+            AddItemTooltip(nameof(ItemID.CellPhone));
             break;
         case ItemID.Compass or ItemID.DepthMeter:
-            AddTooltip("Compass");
+            AddItemTooltip(nameof(ItemID.Compass));
             break;
         }
     }
@@ -138,7 +137,6 @@ public static class InfoAccessories {
         SpymPlayer spymPlayer = player.GetModPlayer<SpymPlayer>();
         switch (item.type) {
         case ItemID.GoldWatch or ItemID.PlatinumWatch:
-            // TODO multiplayer
             spymPlayer.timeMult *= 10;
             break;
         case ItemID.CellPhone:
@@ -148,6 +146,7 @@ public static class InfoAccessories {
         }
     }
 
+    // TODO balancing around a "vanilla feel", not too op
     public static void UpdateEquip(Item item, Player player){
         SpymPlayer spymPlayer = player.GetModPlayer<SpymPlayer>();
         switch (item.type) {
@@ -155,7 +154,7 @@ public static class InfoAccessories {
             spymPlayer.timeMult *= 0.9f;
             break;
         case ItemID.Radar:
-            spymPlayer.spawnRateMult += 1.5f;
+            spymPlayer.spawnRateMult *= 1.5f;
             break;
         case ItemID.TallyCounter:
             spymPlayer.lootBoost += 0.25f;
@@ -164,7 +163,7 @@ public static class InfoAccessories {
             spymPlayer.npcExtraRerolls += 19;
             break;
         case ItemID.Stopwatch:
-            spymPlayer.speedMult += 0.5f;
+            spymPlayer.speedMult += 0.33f;
             break;
         case ItemID.DPSMeter:
             spymPlayer.fixedDamage = true;
