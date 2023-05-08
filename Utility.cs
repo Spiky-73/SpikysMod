@@ -94,9 +94,9 @@ public static class Utility {
         }
     }
     
-    public static int AlterRate(int chanceDenominator, float mult) {
-        if (mult <= 1f) return chanceDenominator;
-        chanceDenominator = (int)System.MathF.Ceiling(System.MathF.Pow(2, System.MathF.Pow(System.MathF.Log2(chanceDenominator), 1 / mult)));
+    public static int BoostRate(int chanceDenominator, float boost) {
+        if (boost <= 1f) return chanceDenominator;
+        chanceDenominator = (int)System.MathF.Ceiling(System.MathF.Pow(2, System.MathF.Pow(System.MathF.Log2(chanceDenominator), 1 / boost)));
         return chanceDenominator;
     }
 }

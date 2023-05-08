@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework;
 using MonoMod.Cil;
 using System.Reflection;
 using Mono.Cecil.Cil;
+using Terraria.Audio;
 
 namespace SPYM.Globals;
 
@@ -19,6 +20,7 @@ public class SpymPlayer : ModPlayer {
     
     public float minFishingPower;
 
+    public static ModKeybind PrioritizeOre = null!;
     public bool orePriority;
     public int prioritizedOre = -1;
 
@@ -35,6 +37,8 @@ public class SpymPlayer : ModPlayer {
 
 
     public override void Load() {
+        PrioritizeOre = KeybindLoader.RegisterKeybind(Mod, "Prioritize ore", Microsoft.Xna.Framework.Input.Keys.LeftControl);
+
         On.Terraria.Projectile.GetFishingPondState += HookGetFishingPondState;
         On.Terraria.Player.Fishing_GetPowerMultiplier += HookGetPowerMultiplier;
 
@@ -83,13 +87,14 @@ public class SpymPlayer : ModPlayer {
     public override void SetControls() {
         if (Configs.InventoryManagement.Instance.fastRightClick) InventoryManagement.Actions.AttemptFastRightClick();
     }
-    // TODO add messages or sfxs
     public override void ProcessTriggers(TriggersSet triggersSet) {
         InventoryManagement.Actions.ProcessShortcuts(Player);
         if (Configs.InventoryManagement.Instance.itemSwap) InventoryManagement.Actions.AttemptItemSwap(Player, triggersSet);
 
-        if (orePriority && SpikysMod.PrioritizeOre.JustPressed && Player.HeldItem.pick > 0 && Player.IsTargetTileInItemRange(Player.HeldItem))
+        if (orePriority && PrioritizeOre.JustPressed && Player.HeldItem.pick > 0 && Player.IsTargetTileInItemRange(Player.HeldItem)) {
             prioritizedOre = Main.tile[Player.tileTargetX, Player.tileTargetY].TileType;
+            SoundEngine.PlaySound(SoundID.Tink);
+        }
     }
 
     public override bool PreItemCheck() {
@@ -146,9 +151,11 @@ public class SpymPlayer : ModPlayer {
     }
     private static void HookRestock(On.Terraria.UI.ChestUI.orig_Restock orig) {
         if(Configs.VanillaImprovements.Instance.favoritedItemsInChest) Utility.RunWithHiddenItems(Main.LocalPlayer.Chest()!, i => i.favorited, () => orig());
+        else orig();
     }
     private static void HookLootAll(On.Terraria.UI.ChestUI.orig_LootAll orig) {
         if (Configs.VanillaImprovements.Instance.favoritedItemsInChest) Utility.RunWithHiddenItems(Main.LocalPlayer.Chest()!, i => i.favorited, () => orig());
+        else orig();
     }
 
     private static void HookUpdateBiomes(On.Terraria.Player.orig_UpdateBiomes orig, Player self) {

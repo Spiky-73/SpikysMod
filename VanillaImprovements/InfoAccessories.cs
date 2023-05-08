@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using SPYM.Globals;
 using Terraria;
+using Terraria.Audio;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
@@ -25,7 +26,6 @@ public static class InfoAccessories {
             item.useStyle = ItemUseStyleID.HoldUp;
             item.useTime = 45;
             item.useAnimation = 45;
-            item.UseSound = SoundID.Item43;
             break;
         case ItemID.Sextant:
             item.useStyle = ItemUseStyleID.HoldUp;
@@ -68,7 +68,7 @@ public static class InfoAccessories {
             AddItemTooltip(nameof(ItemID.Stopwatch));
             break;
         case ItemID.MetalDetector:
-            List<string> kb = SpikysMod.PrioritizeOre.GetAssignedKeys();
+            List<string> kb = SpymPlayer.PrioritizeOre.GetAssignedKeys();
             AddItemTooltip(nameof(ItemID.MetalDetector), kb.Count == 0 ? Lang.menu[195].Value : kb[0]);
             break;
         case ItemID.DPSMeter:
@@ -102,10 +102,10 @@ public static class InfoAccessories {
         switch (item.type) {
         case ItemID.GoldWatch or ItemID.PlatinumWatch:
             return true;
-        case ItemID.WeatherRadio:
-            // TODO multiplayer
+        case ItemID.WeatherRadio: // TODO multiplayer
             if (Main.raining) Main.StopRain();
             else Main.StartRain();
+            SoundEngine.PlaySound(SoundID.Item66);
             return true;
         case ItemID.Sextant: // TODO multiplayer
             Main.StopSlimeRain(false);
@@ -127,8 +127,10 @@ public static class InfoAccessories {
     public static bool? UseItem_Alt(Item item) {
         switch (item.type) {
         case ItemID.WeatherRadio: // TODO multiplayer
-            Main.windSpeedTarget = Main.rand.NextBool() ? -0.8f : 0.8f;
+            if(Main.windSpeedTarget == 0f) Main.windSpeedTarget = Main.rand.NextBool() ? -0.8f : 0.8f;
+            else Main.windSpeedTarget = 0;
             Main.ResetWindCounter(true);
+            SoundEngine.PlaySound(SoundID.Item43);
             return true;
         }
         return null;
@@ -146,7 +148,6 @@ public static class InfoAccessories {
         }
     }
 
-    // TODO balancing around a "vanilla feel", not too op
     public static void UpdateEquip(Item item, Player player){
         SpymPlayer spymPlayer = player.GetModPlayer<SpymPlayer>();
         switch (item.type) {
@@ -163,7 +164,7 @@ public static class InfoAccessories {
             spymPlayer.npcExtraRerolls += 19;
             break;
         case ItemID.Stopwatch:
-            spymPlayer.speedMult += 0.33f;
+            spymPlayer.speedMult += 0.20f;
             break;
         case ItemID.DPSMeter:
             spymPlayer.fixedDamage = true;

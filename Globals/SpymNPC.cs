@@ -132,9 +132,9 @@ public class SpymNPC : GlobalNPC {
 
     private static void HookDropItem(On.Terraria.NPC.orig_NPCLoot_DropItems orig, NPC self, Player closestPlayer) {
         bool bannerBuff = Configs.VanillaImprovements.Instance.bannerBuff && closestPlayer.HasNPCBannerBuff(Item.NPCtoBanner(self.BannerID()));
-        SpymSystem.AlteredRngRates = closestPlayer.GetModPlayer<SpymPlayer>().lootBoost + (bannerBuff ? 0.1f : 0f);
+        SpymSystem.BoostedRngRates = closestPlayer.GetModPlayer<SpymPlayer>().lootBoost + (bannerBuff ? 0.1f : 0f);
         orig(self, closestPlayer);
-        SpymSystem.AlteredRngRates = null;
+        SpymSystem.BoostedRngRates = null;
     }
 }
 

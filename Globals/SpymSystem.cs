@@ -46,17 +46,17 @@ public class SpymSystem : ModSystem {
     private static void HookUpdateTime_StartNight(On.Terraria.Main.orig_UpdateTime_StartNight orig, ref bool stopEvents) {
         AlterEventChance();
         orig(ref stopEvents);
-        AlteredRngRates = null;
+        BoostedRngRates = null;
     }
     private static void HookUpdateTime_StartDay(On.Terraria.Main.orig_UpdateTime_StartDay orig, ref bool stopEvents) {
         AlterEventChance();
         orig(ref stopEvents);
-        AlteredRngRates = null;
+        BoostedRngRates = null;
     }
     private static void AlterEventChance(){
         switch (Main.netMode) {
         case NetmodeID.SinglePlayer:
-            AlteredRngRates = Main.LocalPlayer.GetModPlayer<SpymPlayer>().eventsBoost;
+            BoostedRngRates = Main.LocalPlayer.GetModPlayer<SpymPlayer>().eventsBoost;
             return;
         case NetmodeID.Server: // TODO multiplayer
             return;
@@ -118,9 +118,9 @@ public class SpymSystem : ModSystem {
         return (int)System.MathF.Round(dmg);
     }
 
-    public static float? AlteredRngRates { get; set; }
+    public static float? BoostedRngRates { get; set; }
     private static int HookRngNext_int(On.Terraria.Utilities.UnifiedRandom.orig_Next_int orig, Terraria.Utilities.UnifiedRandom self, int maxValue) {
-        if (AlteredRngRates.HasValue) return orig(self, Utility.AlterRate(maxValue, AlteredRngRates.Value));
+        if (BoostedRngRates.HasValue) return orig(self, Utility.BoostRate(maxValue, BoostedRngRates.Value)); // BUG negtive int (to replicate)
         return orig(self, maxValue);
     }
 }
