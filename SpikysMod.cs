@@ -8,8 +8,6 @@ public class SpikysMod : Mod {
 
     public override void Load() {
         Instance = this;
-
-        InventoryManagement.Actions.Load();
     }
 
     public override void Unload() {

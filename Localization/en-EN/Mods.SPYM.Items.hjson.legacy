@@ -1,0 +1,78 @@
+GoldWatch.Tooltip:
+    '''
+    Use to speed up time
+    Slightly slows down time
+    '''
+Radar.Tooltip: Slightly increases spawn rates
+TallyCounter.Tooltip: Increases item drop rates of rare items
+FifeformAnalyzer.Tooltip: Slightly increases spawn rates of rare ennemies
+Stopwatch.Tooltip: Increases movement speed
+MetalDetector.Tooltip:
+    '''
+    Gives a spelunking glowstick effect
+    Press {0} when holding a pickaxe to prioritize an ore
+    Displays the distance to the closest detected ore
+    '''
+FishermansGuide.Tooltip: Maximizes fishing power gain with the environment
+WeatherRadio.Tooltip:
+    '''
+    Use to toggle the Rain
+    Right click to toggle the Windy Day
+    Equip to toogle Chrismas and Halloween
+    '''
+Sextant.Tooltip:
+    '''
+    Use to cancel the current event
+    Events are more likely to occur
+    '''
+Compass.Tooltip:
+    '''
+    Use to records the biomes you are in.
+    Equip to combine the recorded biomes with the current ones
+    '''
+CellPhone.Tooltip:
+    '''
+    Leaves a portal to teleport back
+    Click the head of your party members on the fullscreen map to teleport to them
+    '''
+DPSMeter.Tooltip:
+    '''
+    5% increased damage (multiplicative)
+    Hit damage is no longer randomized
+    '''
+dpsMeter2: Gives the detailed stats of your character and DPS
+hallowedWatch:
+    '''
+    Use to greatly speed up time
+    Slows down time
+    '''
+matianWatch:
+    '''
+    Allows ultimate control over time!
+    Use to edit the time
+    Right Click to change between day and night
+    Equip to stops time
+    '''
+locatorAddMarker: Use on a tile to add a marker
+locator:
+    '''
+    Displays makers for interest points on the map
+    Right click while holding to edit markers 
+    '''
+// biome chest, plantera bulb, temple alter, etc
+locator2: Click on a marker to teleport to it
+radar2: Greatly increases spawn rate
+radar3:
+    '''
+    Massivelly increases spawn rate
+    Just don't...
+    '''
+tallyCounter2: Greatly increases item drop rates
+lifeformAnalyzer2: Greatly increases spawn rates of rare ennemies
+stopwatch2: To infinity and beyond!
+metalDetector2: 15% mining speed increase
+weatherStation:
+    '''
+    Allows ultimate control over the weather and the moon!
+    Right click while holding to edit control the weahter and the moon
+    '''

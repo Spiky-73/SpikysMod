@@ -13,7 +13,7 @@ public class SpymInfoDisplay : GlobalInfoDisplay {
 
 
     public override void Load() {
-        On.Terraria.SceneMetrics.UpdateOreFinderData += HookOreFinderData;
+        On_SceneMetrics.UpdateOreFinderData += HookOreFinderData;
     }
 
 
@@ -62,7 +62,7 @@ public class SpymInfoDisplay : GlobalInfoDisplay {
     }
 
 
-    private static void HookOreFinderData(On.Terraria.SceneMetrics.orig_UpdateOreFinderData orig, SceneMetrics self) {
+    private static void HookOreFinderData(On_SceneMetrics.orig_UpdateOreFinderData orig, SceneMetrics self) {
         SpymPlayer spymPlayer = Main.LocalPlayer.GetModPlayer<SpymPlayer>();
         if (!spymPlayer.orePriority || spymPlayer.prioritizedOre == -1) {
             orig(self);

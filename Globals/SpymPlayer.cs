@@ -39,34 +39,28 @@ public class SpymPlayer : ModPlayer {
     public override void Load() {
         PrioritizeOre = KeybindLoader.RegisterKeybind(Mod, "Prioritize ore", Microsoft.Xna.Framework.Input.Keys.LeftControl);
 
-        On.Terraria.Projectile.GetFishingPondState += HookGetFishingPondState;
-        On.Terraria.Player.Fishing_GetPowerMultiplier += HookGetPowerMultiplier;
+        On_Projectile.GetFishingPondState += HookGetFishingPondState;
+        On_Player.Fishing_GetPowerMultiplier += HookGetPowerMultiplier;
 
-        On.Terraria.Player.HasUnityPotion += HookHasUnityPotion;
-        On.Terraria.Player.TakeUnityPotion += HookTakeUnityPotion;
+        On_Player.HasUnityPotion += HookHasUnityPotion;
+        On_Player.TakeUnityPotion += HookTakeUnityPotion;
         
-        On.Terraria.Projectile.Damage += HookProjDamage;
-        On.Terraria.Player.GetMinecartDamage += HookMinecartDamage;
+        On_Projectile.Damage += HookProjDamage;
+        On_Player.GetMinecartDamage += HookMinecartDamage;
 
-        On.Terraria.Player.UpdateBiomes += HookUpdateBiomes;
-        IL.Terraria.SceneMetrics.ScanAndExportToMain += ILScanAndExportToMain;
+        On_Player.UpdateBiomes += HookUpdateBiomes;
+        IL_SceneMetrics.ScanAndExportToMain += ILScanAndExportToMain;
 
-        On.Terraria.UI.ItemSlot.RightClick_FindSpecialActions += HookRightClick;
-        
-        On.Terraria.Player.OpenChest += HookOpenChest;
-        On.Terraria.UI.ItemSlot.LeftClick_ItemArray_int_int += HookLeftClick;
-        ItemSlot.OnItemTransferred += InventoryManagement.Items.OnItemTranfer;
+        On_ItemSlot.LeftClick_ItemArray_int_int += HookLeftClick;
         ItemSlot.OnItemTransferred += VanillaImprovements.Chests.OnItemTranfer;
-        On.Terraria.Player.GetItem += HookGetItem;
 
-        On.Terraria.Main.GetBuffTooltip += HookBuffTooltip;
+        On_Main.GetBuffTooltip += HookBuffTooltip;
 
-        On.Terraria.UI.ChestUI.LootAll += HookLootAll;
-        On.Terraria.UI.ChestUI.Restock += HookRestock;
+        On_ChestUI.LootAll += HookLootAll;
+        On_ChestUI.Restock += HookRestock;
     }
 
     public override void Initialize() => ResetEffects();
-
 
     public override void ResetEffects() {
         forcedSeasons = false;
@@ -84,12 +78,7 @@ public class SpymPlayer : ModPlayer {
         VanillaImprovements.Buffs.UnhideBuffs();
     }
 
-    public override void SetControls() {
-        if (Configs.InventoryManagement.Instance.fastRightClick) InventoryManagement.Actions.AttemptFastRightClick();
-    }
     public override void ProcessTriggers(TriggersSet triggersSet) {
-        InventoryManagement.Actions.ProcessShortcuts(Player);
-        if (Configs.InventoryManagement.Instance.itemSwap) InventoryManagement.Actions.AttemptItemSwap(Player, triggersSet);
 
         if (orePriority && PrioritizeOre.JustPressed && Player.HeldItem.pick > 0 && Player.IsTargetTileInItemRange(Player.HeldItem)) {
             prioritizedOre = Main.tile[Player.tileTargetX, Player.tileTargetY].TileType;
@@ -98,16 +87,11 @@ public class SpymPlayer : ModPlayer {
     }
 
     public override bool PreItemCheck() {
-        if (Configs.InventoryManagement.Instance.itemRightClick && InventoryManagement.Actions.AttemptItemRightClick(Player)) return false;
         SpymSystem.FixedDamage = fixedDamage;
         return true;
     }
     public override void PostItemCheck() {
         SpymSystem.FixedDamage = false;
-    }
-
-    public override void PostUpdate() {
-        InventoryManagement.Items.PostUpdate(Player);
     }
 
     public override void PreUpdateBuffs() {
@@ -126,39 +110,22 @@ public class SpymPlayer : ModPlayer {
         Player.gravity *= speedMult;
     }
 
-
-    private static void HookLeftClick(On.Terraria.UI.ItemSlot.orig_LeftClick_ItemArray_int_int orig, Item[] inv, int context, int slot) {
-        InventoryManagement.Items.OnSlotLeftClick(slot);
+    private static void HookLeftClick(On_ItemSlot.orig_LeftClick_ItemArray_int_int orig, Item[] inv, int context, int slot) {
         VanillaImprovements.Chests.OnSlotLeftClick();
         orig(inv, context, slot);
-        if(Configs.VanillaImprovements.Instance.favoritedItemsInChest && (context == 3 || context == 4) && VanillaImprovements.Chests.DepositedFavItem) inv[slot].favorited = true;
-    }
-    private static bool HookRightClick(On.Terraria.UI.ItemSlot.orig_RightClick_FindSpecialActions orig, Item[] inv, int context, int slot, Player player) {
-        int stackSplit = Main.stackSplit;
-        bool res = orig(inv, context, slot, player);
-        if (Configs.InventoryManagement.Instance.fastRightClick) InventoryManagement.Actions.FastRightClick(stackSplit);
-        return res;
+        if(Configs.VanillaImprovements.Instance.favoriteItemsInChest && (context == 3 || context == 4) && VanillaImprovements.Chests.DepositedFavItem) inv[slot].favorited = true;
     }
 
-    private static Item HookGetItem(On.Terraria.Player.orig_GetItem orig, Player self, int plr, Item newItem, GetItemSettings settings) {
-        if (InventoryManagement.Items.SmartPickupEnabled(newItem) && InventoryManagement.Items.OnGetItem(plr, self, ref newItem, settings)) return new();
-        return orig(self, plr, newItem, settings);
-    }
-
-    private static void HookOpenChest(On.Terraria.Player.orig_OpenChest orig, Player self, int x, int y, int newChest) {
-        orig(self, x, y, newChest);
-        InventoryManagement.Items.OnOpenChest(self);
-    }
-    private static void HookRestock(On.Terraria.UI.ChestUI.orig_Restock orig) {
-        if(Configs.VanillaImprovements.Instance.favoritedItemsInChest) Utility.RunWithHiddenItems(Main.LocalPlayer.Chest()!, i => i.favorited, () => orig());
+    private static void HookRestock(On_ChestUI.orig_Restock orig) {
+        if(Configs.VanillaImprovements.Instance.favoriteItemsInChest) Utility.RunWithHiddenItems(Main.LocalPlayer.Chest()!, i => i.favorited, () => orig());
         else orig();
     }
-    private static void HookLootAll(On.Terraria.UI.ChestUI.orig_LootAll orig) {
-        if (Configs.VanillaImprovements.Instance.favoritedItemsInChest) Utility.RunWithHiddenItems(Main.LocalPlayer.Chest()!, i => i.favorited, () => orig());
+    private static void HookLootAll(On_ChestUI.orig_LootAll orig) {
+        if (Configs.VanillaImprovements.Instance.favoriteItemsInChest) Utility.RunWithHiddenItems(Main.LocalPlayer.Chest()!, i => i.favorited, () => orig());
         else orig();
     }
 
-    private static void HookUpdateBiomes(On.Terraria.Player.orig_UpdateBiomes orig, Player self) {
+    private static void HookUpdateBiomes(On_Player.orig_UpdateBiomes orig, Player self) {
         SpymPlayer spymPlayer = self.GetModPlayer<SpymPlayer>();
         if (!spymPlayer.biomeLock || !spymPlayer.biomeLockPosition.HasValue) {
             orig(self);
@@ -219,34 +186,30 @@ public class SpymPlayer : ModPlayer {
         cursor.Emit(OpCodes.Brtrue, redoLabel);
     }
 
-
-    private static void HookMinecartDamage(On.Terraria.Player.orig_GetMinecartDamage orig, Player self, float currentSpeed, out int damage, out float knockback) {
+    private static void HookMinecartDamage(On_Player.orig_GetMinecartDamage orig, Player self, float currentSpeed, out int damage, out float knockback) {
         SpymSystem.FixedDamage = self.GetModPlayer<SpymPlayer>().fixedDamage;
         orig(self, currentSpeed, out damage, out knockback);
         SpymSystem.FixedDamage = false;
     }
-    private static void HookProjDamage(On.Terraria.Projectile.orig_Damage orig, Projectile self) {
+    private static void HookProjDamage(On_Projectile.orig_Damage orig, Projectile self) {
         SpymSystem.FixedDamage = Main.player[self.owner].GetModPlayer<SpymPlayer>().fixedDamage;
         orig(self);
         SpymSystem.FixedDamage = false;
     }
 
-
-    private static float HookGetPowerMultiplier(On.Terraria.Player.orig_Fishing_GetPowerMultiplier orig, Player self, Item pole, Item bait)
+    private static float HookGetPowerMultiplier(On_Player.orig_Fishing_GetPowerMultiplier orig, Player self, Item pole, Item bait)
         => System.MathF.Max(Main.LocalPlayer.GetModPlayer<SpymPlayer>().minFishingPower, orig(self, pole, bait));
-    private void HookGetFishingPondState(On.Terraria.Projectile.orig_GetFishingPondState orig, int x, int y, out bool lava, out bool honey, out int numWaters, out int chumCount) {
+    private void HookGetFishingPondState(On_Projectile.orig_GetFishingPondState orig, int x, int y, out bool lava, out bool honey, out int numWaters, out int chumCount) {
         orig(x, y, out lava, out honey, out numWaters, out chumCount);
         if (Main.LocalPlayer.GetModPlayer<SpymPlayer>().minFishingPower >= 1) numWaters = 1000;
     }
 
-
-    private static bool HookHasUnityPotion(On.Terraria.Player.orig_HasUnityPotion orig, Player self) => (Configs.VanillaImprovements.Instance.infoAccPlus && VanillaImprovements.InfoAccessories.ForcedUnityPotion(self)) || orig(self);
-    private static void HookTakeUnityPotion(On.Terraria.Player.orig_TakeUnityPotion orig, Player self) {
+    private static bool HookHasUnityPotion(On_Player.orig_HasUnityPotion orig, Player self) => (Configs.VanillaImprovements.Instance.infoAccPlus && VanillaImprovements.InfoAccessories.ForcedUnityPotion(self)) || orig(self);
+    private static void HookTakeUnityPotion(On_Player.orig_TakeUnityPotion orig, Player self) {
         if (Configs.VanillaImprovements.Instance.infoAccPlus && VanillaImprovements.InfoAccessories.ForcedUnityPotion(self)) return;
         orig(self);
     }
 
-
-    private static string HookBuffTooltip(On.Terraria.Main.orig_GetBuffTooltip orig, Player player, int buffType)
+    private static string HookBuffTooltip(On_Main.orig_GetBuffTooltip orig, Player player, int buffType)
         => buffType == BuffID.MonsterBanner && Configs.VanillaImprovements.Instance.bannerBuff ? Language.GetTextValue($"{Localization.Keys.Buffs}.Banner") : orig(player, buffType);
 }

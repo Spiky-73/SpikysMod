@@ -41,13 +41,6 @@ public class SpymItem : GlobalItem {
     public override void UpdateEquip(Item item, Player player) {
         if (Configs.VanillaImprovements.Instance.infoAccPlus) VanillaImprovements.InfoAccessories.UpdateEquip(item, player);
     }
-
-    public override void OnConsumeItem(Item item, Player player) {
-        if (Configs.InventoryManagement.Instance.smartConsumption) InventoryManagement.Items.OnConsume(item, player);
-    }
-    public override void OnConsumedAsAmmo(Item ammo, Item weapon, Player player) {
-        if (Configs.InventoryManagement.Instance.smartAmmo) InventoryManagement.Items.OnConsume(ammo, player, true);
-    }
 }
 
 

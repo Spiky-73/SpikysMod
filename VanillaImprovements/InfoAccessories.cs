@@ -67,7 +67,7 @@ public static class InfoAccessories {
         case ItemID.Stopwatch:
             AddItemTooltip(nameof(ItemID.Stopwatch));
             break;
-        case ItemID.MetalDetector:
+        case ItemID.MetalDetector: // TODO remove '!' or add _ to signifiy its missing, add direction (<>^v)  
             List<string> kb = SpymPlayer.PrioritizeOre.GetAssignedKeys();
             AddItemTooltip(nameof(ItemID.MetalDetector), kb.Count == 0 ? Lang.menu[195].Value : kb[0]);
             break;

@@ -10,5 +10,4 @@ public static class Keys {
     public const string InfoDisplays = $"{Root}.{nameof(InfoDisplays)}";
 
     public const string VanillaImprovements = $"{Configs}.{nameof(SPYM.Configs.VanillaImprovements)}";
-    public const string InventoryManagement = $"{Configs}.{nameof(SPYM.Configs.InventoryManagement)}";
 }

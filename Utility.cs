@@ -5,22 +5,6 @@ using Terraria;
 namespace SPYM;
 public static class Utility {
 
-    public class DescendingComparer<T> : IComparer<T> where T : System.IComparable<T> {
-        public int Compare(T? x, T? y) => y is null ? 1 : y.CompareTo(x);
-    }
-
-    public static Item? LastStack(this Player player, Item item, bool notArg = false) {
-        for (int i = player.inventory.Length - 1 - 8; i >= 0; i--) {
-            if (item.type == player.inventory[i].type && (!notArg || player.inventory[i] != item))
-                return player.inventory[i];
-        }
-        for (int i = player.inventory.Length - 1; i >= 8; i--) {
-            if (item.type == player.inventory[i].type && (!notArg || player.inventory[i] != item))
-                return player.inventory[i];
-        }
-        return null;
-    }
-
     public enum InclusionFlag {
         Min = 0x01,
         Max = 0x10,
@@ -33,27 +17,12 @@ public static class Utility {
         return (l > 0 || (flags.HasFlag(InclusionFlag.Min) && l == 0)) && (r < 0 || (flags.HasFlag(InclusionFlag.Max) && r == 0));
     }
 
-    public static Item? SmallestStack(this Player player, Item item, bool notArg = false) {
-        Item? currentMin = null;
-        for (int i = player.inventory.Length - 1; i >= 0; i--) {
-            if (item.type == player.inventory[i].type
-                    && (currentMin is null || player.inventory[i].stack < currentMin.stack)
-                    && (!notArg || player.inventory[i] != item))
-                currentMin = player.inventory[i];
-        }
-        return currentMin;
-    }
-
     public static bool BossAlive() {
         foreach (NPC npc in Main.npc) {
             if (npc.active && npc.boss) return true;
         }
         return false;
     }
-
-    public static bool IsEquipable(this Item item)
-        => item.headSlot > 0 || item.bodySlot > 0 || item.legSlot > 0 || item.accessory || Main.projHook[item.shoot] || item.mountType != -1 || (item.buffType > 0 && (Main.lightPet[item.buffType] || Main.vanityPet[item.buffType]));
-
 
     public enum SnapMode {
         Round,

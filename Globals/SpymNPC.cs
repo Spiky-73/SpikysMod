@@ -12,12 +12,12 @@ namespace SPYM.Globals;
 public class SpymNPC : GlobalNPC {
 
     public override void Load() {
-        On.Terraria.NPC.NewNPC += HookNewNPC;
-        IL.Terraria.NPC.SpawnNPC += ILSpawnNPC;
+        On_NPC.NewNPC += HookNewNPC;
+        // IL_NPC.SpawnNPC += ILSpawnNPC;
 
-        IL.Terraria.GameContent.ItemDropRules.ItemDropResolver.ResolveRule += ILResolveRule;
-        
-        On.Terraria.NPC.NPCLoot_DropItems += HookDropItem;
+        IL_ItemDropResolver.ResolveRule += ILResolveRule;
+
+        On_NPC.NPCLoot_DropItems += HookDropItem;
     }
 
     public override void EditSpawnRate(Player player, ref int spawnRate, ref int maxSpawns) {
@@ -35,7 +35,7 @@ public class SpymNPC : GlobalNPC {
     private static int _ilAttempts, _ilCurrentTry;
     private static NPC? _ilRarestSpawn;
     private static int _ilRarestSpawnIndex;
-    private static int HookNewNPC(On.Terraria.NPC.orig_NewNPC orig, IEntitySource source, int X, int Y, int Type, int Start, float ai0, float ai1, float ai2, float ai3, int Target) {
+    private static int HookNewNPC(On_NPC.orig_NewNPC orig, IEntitySource source, int X, int Y, int Type, int Start, float ai0, float ai1, float ai2, float ai3, int Target) {
         return _lastNpcSpawned = orig(source, X, Y, Type, Start, ai0, ai1, ai2, ai3, Target);
     }
     private void ILSpawnNPC(ILContext il) {
@@ -130,7 +130,7 @@ public class SpymNPC : GlobalNPC {
     }
 
 
-    private static void HookDropItem(On.Terraria.NPC.orig_NPCLoot_DropItems orig, NPC self, Player closestPlayer) {
+    private static void HookDropItem(On_NPC.orig_NPCLoot_DropItems orig, NPC self, Player closestPlayer) {
         bool bannerBuff = Configs.VanillaImprovements.Instance.bannerBuff && closestPlayer.HasNPCBannerBuff(Item.NPCtoBanner(self.BannerID()));
         SpymSystem.BoostedRngRates = closestPlayer.GetModPlayer<SpymPlayer>().lootBoost + (bannerBuff ? 0.1f : 0f);
         orig(self, closestPlayer);
