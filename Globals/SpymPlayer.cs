@@ -9,6 +9,7 @@ using MonoMod.Cil;
 using System.Reflection;
 using Mono.Cecil.Cil;
 using Terraria.Audio;
+using System.Collections.Generic;
 
 namespace SPYM.Globals;
 
@@ -35,6 +36,7 @@ public class SpymPlayer : ModPlayer {
 
     public int npcExtraRerolls;
 
+    private static readonly HashSet<int> _hiddenBuffs = new();
 
     public override void Load() {
         PrioritizeOre = KeybindLoader.RegisterKeybind(Mod, "Prioritize ore", Microsoft.Xna.Framework.Input.Keys.LeftControl);
@@ -52,7 +54,7 @@ public class SpymPlayer : ModPlayer {
         IL_SceneMetrics.ScanAndExportToMain += ILScanAndExportToMain;
 
         On_ItemSlot.LeftClick_ItemArray_int_int += HookLeftClick;
-        ItemSlot.OnItemTransferred += VanillaImprovements.Chests.OnItemTranfer;
+        ItemSlot.OnItemTransferred += OnItemTranfer;
 
         On_Main.GetBuffTooltip += HookBuffTooltip;
 
@@ -75,7 +77,8 @@ public class SpymPlayer : ModPlayer {
         spawnRateMult = 1;
         speedMult = 1;
 
-        VanillaImprovements.Buffs.UnhideBuffs();
+        foreach (int buff in _hiddenBuffs) Main.buffNoTimeDisplay[buff] = false;
+        _hiddenBuffs.Clear();
     }
 
     public override void ProcessTriggers(TriggersSet triggersSet) {
@@ -95,7 +98,16 @@ public class SpymPlayer : ModPlayer {
     }
 
     public override void PreUpdateBuffs() {
-        if (Configs.VanillaImprovements.Instance.frozenBuffs) VanillaImprovements.Buffs.FreezeBuffs(Player);
+        if (Configs.VanillaImprovements.Instance.frozenBuffs && (Utility.BossAlive() || NPC.BusyWithAnyInvasionOfSorts())){
+            for (int i = 0; i < Player.buffType.Length; i++) {
+                int buff = Player.buffType[i];
+                if (!_hiddenBuffs.Contains(buff) && (Main.debuff[buff] || Main.buffNoTimeDisplay[buff])) continue;
+
+                _hiddenBuffs.Add(buff);
+                Main.buffNoTimeDisplay[buff] = true;
+                Player.buffTime[i] += 1;
+            }
+        }
     }
 
     public override void PostUpdateRunSpeeds() {
@@ -111,11 +123,12 @@ public class SpymPlayer : ModPlayer {
     }
 
     private static void HookLeftClick(On_ItemSlot.orig_LeftClick_ItemArray_int_int orig, Item[] inv, int context, int slot) {
-        VanillaImprovements.Chests.OnSlotLeftClick();
+        DepositedFavItem = Main.mouseItem.favorited;
         orig(inv, context, slot);
-        if(Configs.VanillaImprovements.Instance.favoriteItemsInChest && (context == 3 || context == 4) && VanillaImprovements.Chests.DepositedFavItem) inv[slot].favorited = true;
+        if(Configs.VanillaImprovements.Instance.favoriteItemsInChest && (context == 3 || context == 4) && DepositedFavItem) inv[slot].favorited = true;
     }
 
+    // TODO move to Better inventory
     private static void HookRestock(On_ChestUI.orig_Restock orig) {
         if(Configs.VanillaImprovements.Instance.favoriteItemsInChest) Utility.RunWithHiddenItems(Main.LocalPlayer.Chest()!, i => i.favorited, () => orig());
         else orig();
@@ -204,12 +217,17 @@ public class SpymPlayer : ModPlayer {
         if (Main.LocalPlayer.GetModPlayer<SpymPlayer>().minFishingPower >= 1) numWaters = 1000;
     }
 
-    private static bool HookHasUnityPotion(On_Player.orig_HasUnityPotion orig, Player self) => (Configs.VanillaImprovements.Instance.infoAccPlus && VanillaImprovements.InfoAccessories.ForcedUnityPotion(self)) || orig(self);
+    private static bool HookHasUnityPotion(On_Player.orig_HasUnityPotion orig, Player self) => (Configs.VanillaImprovements.Instance.infoAccPlus && ForcedUnityPotion(self)) || orig(self);
     private static void HookTakeUnityPotion(On_Player.orig_TakeUnityPotion orig, Player self) {
-        if (Configs.VanillaImprovements.Instance.infoAccPlus && VanillaImprovements.InfoAccessories.ForcedUnityPotion(self)) return;
+        if (Configs.VanillaImprovements.Instance.infoAccPlus && ForcedUnityPotion(self)) return;
         orig(self);
     }
 
+    public static bool ForcedUnityPotion(Player player) => player.HasItem(ItemID.CellPhone);
+
     private static string HookBuffTooltip(On_Main.orig_GetBuffTooltip orig, Player player, int buffType)
         => buffType == BuffID.MonsterBanner && Configs.VanillaImprovements.Instance.bannerBuff ? Language.GetTextValue($"{Localization.Keys.Buffs}.Banner") : orig(player, buffType);
+
+    public static void OnItemTranfer(ItemSlot.ItemTransferInfo info) => DepositedFavItem &= info.FromContenxt == 21 && info.ToContext.InRange(0, 4);
+    public static bool DepositedFavItem { get; private set; }
 }

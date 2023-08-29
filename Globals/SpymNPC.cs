@@ -13,7 +13,7 @@ public class SpymNPC : GlobalNPC {
 
     public override void Load() {
         On_NPC.NewNPC += HookNewNPC;
-        // IL_NPC.SpawnNPC += ILSpawnNPC;
+        IL_NPC.SpawnNPC += ILSpawnNPC;
 
         IL_ItemDropResolver.ResolveRule += ILResolveRule;
 
@@ -41,8 +41,8 @@ public class SpymNPC : GlobalNPC {
     private void ILSpawnNPC(ILContext il) {
         ILCursor cursor = new(il);
 
-        const byte LocNewNPC = 30;
-        const byte LocSpawnInfo = 25;
+        const byte LocNewNPC = 42;
+        const byte LocSpawnInfo = 9;
 
         ILLabel startLoop = il.DefineLabel();
         ILLabel endLoop = il.DefineLabel();
