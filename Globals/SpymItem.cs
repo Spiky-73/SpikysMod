@@ -67,7 +67,7 @@ public class SpymItem : GlobalItem {
         case ItemID.Stopwatch:
             AddItemTooltip(nameof(ItemID.Stopwatch));
             break;
-        case ItemID.MetalDetector: // TODO remove '!' or add _ to signifiy its missing, add direction (<>^v)  
+        case ItemID.MetalDetector:
             List<string> kb = SpymPlayer.PrioritizeOre.GetAssignedKeys();
             AddItemTooltip(nameof(ItemID.MetalDetector), kb.Count == 0 ? Lang.menu[195].Value : kb[0]);
             break;
@@ -103,7 +103,7 @@ public class SpymItem : GlobalItem {
 
     public override bool? UseItem(Item item, Player player){
         if(!Configs.VanillaImprovements.Instance.infoAccPlus) return null;
-        if(player.altFunctionUse != 2){
+        if(player.altFunctionUse == 2){
             switch (item.type) {
             case ItemID.WeatherRadio: // TODO multiplayer
                 if (Main.windSpeedTarget == 0f) Main.windSpeedTarget = Main.rand.NextBool() ? -0.8f : 0.8f;
@@ -113,7 +113,7 @@ public class SpymItem : GlobalItem {
                 return true;
             }
         } else {
-            switch (item.type) { // TODO see if can return null
+            switch (item.type) {
             case ItemID.GoldWatch or ItemID.PlatinumWatch:
                 return true;
             case ItemID.WeatherRadio: // TODO multiplayer
@@ -179,11 +179,11 @@ public class SpymItem : GlobalItem {
             break;
         case ItemID.MetalDetector:
             spymPlayer.orePriority = true;
-            if (player.HeldItem.type == ItemID.SpelunkerGlowstick) break;
-            player.spelunkerTimer++;
-            if (player.spelunkerTimer++ < 10) break;
-            player.spelunkerTimer = 0;
-            Main.instance.SpelunkerProjectileHelper.AddSpotToCheck(player.Center);
+            // if (player.HeldItem.type == ItemID.SpelunkerGlowstick) break;
+            // player.spelunkerTimer++;
+            // if (player.spelunkerTimer++ < 10) break;
+            // player.spelunkerTimer = 0;
+            // Main.instance.SpelunkerProjectileHelper.AddSpotToCheck(player.Center);
             break;
         case ItemID.WeatherRadio:
             spymPlayer.forcedSeasons = true;

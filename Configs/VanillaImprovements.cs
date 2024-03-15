@@ -13,7 +13,7 @@ public class VanillaImprovements : ModConfig {
 
     [ReloadRequired, DefaultValue(true)] public bool infoAccPlus;
 
-    [DefaultValue(true)] public bool favoriteItemsInChest;
+    [DefaultValue(true)] public bool favoriteInChest;
 
     [ReloadRequired, DefaultValue(true)] public bool bannerRecipes;
     [ReloadRequired, DefaultValue(0.25f)] public float bannerRarity;
@@ -21,8 +21,7 @@ public class VanillaImprovements : ModConfig {
 
     public override void OnChanged() {
         bool[] canFavoriteAt = (bool[])typeof(ItemSlot).GetField("canFavoriteAt", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
-        canFavoriteAt[3] = favoriteItemsInChest;
-        canFavoriteAt[4] = favoriteItemsInChest;
+        canFavoriteAt[ItemSlot.Context.ChestItem] = favoriteInChest;
     }
 
 

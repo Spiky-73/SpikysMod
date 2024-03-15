@@ -1,7 +1,0 @@
-Chat.EventCancelled: The current event has been cancelled
-
-Buffs.MonsterBanner: Increased damage, defense and loot from the following:
-
-RecipesGroups.Banners.DisplayName: "{0} or {1} banner"
-
-InfoDisplays.RecordedPosition: " (recorded {0})"

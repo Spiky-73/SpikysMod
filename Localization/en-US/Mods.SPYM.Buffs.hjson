@@ -1,0 +1,51 @@
+MonsterBanner: Increased damage, defense and loot from the following:
+
+SPYM: {
+	Keybinds.PrioritizeOre.DisplayName: Prioritize Ore
+
+	Configs: {
+		VanillaImprovements: {
+			DisplayName: Vanilla Improvements
+
+			frozenBuffs: {
+				Label: frozen Buffs
+				Tooltip: ""
+			}
+
+			betterCalming: {
+				Label: better Calming
+				Tooltip: ""
+			}
+
+			bannerBuff: {
+				Label: banner Buff
+				Tooltip: ""
+			}
+
+			infoAccPlus: {
+				Label: info Acc Plus
+				Tooltip: ""
+			}
+
+			favoriteItemsInChest: {
+				Label: favorite Items In Chest
+				Tooltip: ""
+			}
+
+			bannerRecipes: {
+				Label: banner Recipes
+				Tooltip: ""
+			}
+
+			bannerRarity: {
+				Label: banner Rarity
+				Tooltip: ""
+			}
+
+			bannerValue: {
+				Label: banner Value
+				Tooltip: ""
+			}
+		}
+	}
+}

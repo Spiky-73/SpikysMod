@@ -10,6 +10,7 @@ using System.Reflection;
 using Mono.Cecil.Cil;
 using Terraria.Audio;
 using System.Collections.Generic;
+using System;
 
 namespace SPYM.Globals;
 
@@ -39,7 +40,7 @@ public class SpymPlayer : ModPlayer {
     private static readonly HashSet<int> _hiddenBuffs = new();
 
     public override void Load() {
-        PrioritizeOre = KeybindLoader.RegisterKeybind(Mod, "Prioritize ore", Microsoft.Xna.Framework.Input.Keys.LeftControl);
+        PrioritizeOre = KeybindLoader.RegisterKeybind(Mod, "PrioritizeOre", Microsoft.Xna.Framework.Input.Keys.LeftControl);
 
         On_Projectile.GetFishingPondState += HookGetFishingPondState;
         On_Player.Fishing_GetPowerMultiplier += HookGetPowerMultiplier;
@@ -84,7 +85,7 @@ public class SpymPlayer : ModPlayer {
     public override void ProcessTriggers(TriggersSet triggersSet) {
 
         if (orePriority && PrioritizeOre.JustPressed && Player.HeldItem.pick > 0 && Player.IsTargetTileInItemRange(Player.HeldItem)) {
-            prioritizedOre = Main.tile[Player.tileTargetX, Player.tileTargetY].TileType;
+            prioritizedOre = Main.IsTileSpelunkable(Player.tileTargetX, Player.tileTargetY) ? Main.tile[Player.tileTargetX, Player.tileTargetY].TileType : -1;
             SoundEngine.PlaySound(SoundID.Tink);
         }
     }
@@ -125,16 +126,17 @@ public class SpymPlayer : ModPlayer {
     private static void HookLeftClick(On_ItemSlot.orig_LeftClick_ItemArray_int_int orig, Item[] inv, int context, int slot) {
         DepositedFavItem = Main.mouseItem.favorited;
         orig(inv, context, slot);
-        if(Configs.VanillaImprovements.Instance.favoriteItemsInChest && (context == 3 || context == 4) && DepositedFavItem) inv[slot].favorited = true;
+        if(Configs.VanillaImprovements.Instance.favoriteInChest && context == ItemSlot.Context.ChestItem && DepositedFavItem) inv[slot].favorited = true;
     }
 
-    // TODO move to Better inventory
     private static void HookRestock(On_ChestUI.orig_Restock orig) {
-        if(Configs.VanillaImprovements.Instance.favoriteItemsInChest) Utility.RunWithHiddenItems(Main.LocalPlayer.Chest()!, i => i.favorited, () => orig());
+        ChestUI.GetContainerUsageInfo(out bool sync, out Item[] items);
+        if (sync && Configs.VanillaImprovements.Instance.favoriteInChest) Utility.RunWithHiddenItems(items, i => i.favorited, () => orig());
         else orig();
     }
     private static void HookLootAll(On_ChestUI.orig_LootAll orig) {
-        if (Configs.VanillaImprovements.Instance.favoriteItemsInChest) Utility.RunWithHiddenItems(Main.LocalPlayer.Chest()!, i => i.favorited, () => orig());
+        ChestUI.GetContainerUsageInfo(out bool sync, out Item[] items);
+        if (sync && Configs.VanillaImprovements.Instance.favoriteInChest) Utility.RunWithHiddenItems(items, i => i.favorited, () => orig());
         else orig();
     }
 
@@ -149,6 +151,8 @@ public class SpymPlayer : ModPlayer {
         orig(self);
         self.Center = center;
     }
+
+
     private static bool _ilRedo;
     private static Vector2? _ilOriginalScanPosition;
     private static SpymPlayer? _ilSpymPlayer;
