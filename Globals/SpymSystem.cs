@@ -64,6 +64,7 @@ public class SpymSystem : ModSystem {
     }
 
     public override void ModifyTimeRate(ref double timeRate, ref double tileUpdateRate, ref double eventUpdateRate) {
+        if (Main.gameMenu) return;
         float mult;
         switch (Main.netMode) {
         case NetmodeID.SinglePlayer:
@@ -88,7 +89,7 @@ public class SpymSystem : ModSystem {
     public override void PostAddRecipes() {
         if (Configs.VanillaImprovements.Instance.infoAccPlus) {
             foreach (Recipe recipe in Main.recipe) {
-                if (recipe.createItem.type != ItemID.CellPhone || recipe.requiredItem.Find(i => i.type == ItemID.PDA) == null) continue;
+                if (recipe.createItem.type != ItemID.CellPhone || recipe.requiredItem.Find(i => i.type == ItemID.PDA) is null) continue;
                 recipe.requiredItem.Add(new(ItemID.PotionOfReturn, 15));
                 recipe.requiredItem.Add(new(ItemID.WormholePotion, 15));
             }
@@ -103,7 +104,7 @@ public class SpymSystem : ModSystem {
 
     public static float? BoostedRngRates { get; set; }
     private static int HookRngNext_int(On_UnifiedRandom.orig_Next_int orig, UnifiedRandom self, int maxValue) {
-        if (BoostedRngRates.HasValue) return orig(self, Utility.BoostRate(maxValue, BoostedRngRates.Value)); // BUG negtive int (to replicate)
+        if (maxValue > 0 && BoostedRngRates.HasValue) return orig(self, Utility.BoostRate(maxValue, BoostedRngRates.Value));
         return orig(self, maxValue);
     }
 
@@ -168,7 +169,7 @@ public class SpymSystem : ModSystem {
                     builder.Append(", ");
                     if (i % 4 == 3 || (i == banners.Count - 3 && i % 4 == 2)) builder.Append('\n');
                 }
-                return Language.GetTextValue($"{Localization.Keys.RecipesGroups}.Banners.DisplayName", builder.ToString(), names[^1]);
+                return Language.GetTextValue($"{Localization.Keys.RecipeGroups}.Banners.DisplayName", builder.ToString(), names[^1]);
             }
 
             Recipe r = Recipe.Create(recipe.ItemID, recipe.Stack).AddTile(recipe.Tile);

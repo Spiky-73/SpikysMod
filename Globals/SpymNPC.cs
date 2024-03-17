@@ -117,9 +117,9 @@ public class SpymNPC : GlobalNPC {
         cursor.EmitDelegate((DropAttemptInfo info) => {
             _ilNpcPosition = null;
             SpymPlayer spymPlayer = info.player.GetModPlayer<SpymPlayer>();
-            if (!spymPlayer.biomeLock || !spymPlayer.biomeLockPosition.HasValue) return;
+            if (spymPlayer.biomeLock?.recoredPosition is null) return;
             _ilNpcPosition = info.npc.Center;
-            info.npc.Center = spymPlayer.biomeLockPosition.Value;
+            info.npc.Center = spymPlayer.biomeLock.recoredPosition.Value;
         });
         cursor.GotoNext(MoveType.After, i => i.MatchCallvirt(candropMethod));
         cursor.Emit(OpCodes.Ldarg_2);

@@ -10,7 +10,6 @@ using System.Reflection;
 using Mono.Cecil.Cil;
 using Terraria.Audio;
 using System.Collections.Generic;
-using System;
 
 namespace SPYM.Globals;
 
@@ -19,16 +18,12 @@ public class SpymPlayer : ModPlayer {
     // TODO sync player data
     public bool fixedDamage;
     public bool forcedSeasons;
-    
     public float minFishingPower;
+    public bool oreHighlight;
 
-    public static ModKeybind PrioritizeOre = null!;
-    public bool orePriority;
-    public int prioritizedOre = -1;
+    public SpymItem? biomeLock;
 
-    public bool biomeLock;
-    public Vector2? biomeLockPosition;
-
+    public float oreBoost;
     public float timeMult;
     public float speedMult;
     public float spawnRateMult;
@@ -40,8 +35,6 @@ public class SpymPlayer : ModPlayer {
     private static readonly HashSet<int> _hiddenBuffs = new();
 
     public override void Load() {
-        PrioritizeOre = KeybindLoader.RegisterKeybind(Mod, "PrioritizeOre", Microsoft.Xna.Framework.Input.Keys.LeftControl);
-
         On_Projectile.GetFishingPondState += HookGetFishingPondState;
         On_Player.Fishing_GetPowerMultiplier += HookGetPowerMultiplier;
 
@@ -68,10 +61,11 @@ public class SpymPlayer : ModPlayer {
     public override void ResetEffects() {
         forcedSeasons = false;
         fixedDamage = false;
-        biomeLock = false;
-        orePriority = false;
+        oreHighlight = false;
+        biomeLock = null;
         minFishingPower = 0;
         npcExtraRerolls = 0;
+        oreBoost = 0f;
         eventsBoost = 1f;
         timeMult = 1;
         lootBoost = 1f;
@@ -80,14 +74,6 @@ public class SpymPlayer : ModPlayer {
 
         foreach (int buff in _hiddenBuffs) Main.buffNoTimeDisplay[buff] = false;
         _hiddenBuffs.Clear();
-    }
-
-    public override void ProcessTriggers(TriggersSet triggersSet) {
-
-        if (orePriority && PrioritizeOre.JustPressed && Player.HeldItem.pick > 0 && Player.IsTargetTileInItemRange(Player.HeldItem)) {
-            prioritizedOre = Main.IsTileSpelunkable(Player.tileTargetX, Player.tileTargetY) ? Main.tile[Player.tileTargetX, Player.tileTargetY].TileType : -1;
-            SoundEngine.PlaySound(SoundID.Tink);
-        }
     }
 
     public override bool PreItemCheck() {
@@ -142,12 +128,12 @@ public class SpymPlayer : ModPlayer {
 
     private static void HookUpdateBiomes(On_Player.orig_UpdateBiomes orig, Player self) {
         SpymPlayer spymPlayer = self.GetModPlayer<SpymPlayer>();
-        if (!spymPlayer.biomeLock || !spymPlayer.biomeLockPosition.HasValue) {
+        if (spymPlayer.biomeLock?.recoredPosition is null) {
             orig(self);
             return;
         }
         Vector2 center = self.Center;
-        self.Center = spymPlayer.biomeLockPosition.Value;
+        self.Center = spymPlayer.biomeLock.recoredPosition.Value;
         orig(self);
         self.Center = center;
     }
@@ -176,14 +162,14 @@ public class SpymPlayer : ModPlayer {
             _ilSpymPlayer = Main.LocalPlayer.GetModPlayer<SpymPlayer>();
             _ilRedo = Main.netMode != NetmodeID.Server
                 && settings.BiomeScanCenterPositionInWorld == Main.LocalPlayer.Center
-                && _ilSpymPlayer.biomeLock && _ilSpymPlayer.biomeLockPosition.HasValue;
+                && _ilSpymPlayer.biomeLock?.recoredPosition is not null;
         });
         cursor.MarkLabel(redoLabel);
         cursor.Emit(OpCodes.Ldarg_S, ArgSettings);
         cursor.EmitDelegate((SceneMetricsScanSettings settings) => {
             if (_ilRedo) {
                 _ilOriginalScanPosition = settings.BiomeScanCenterPositionInWorld;
-                settings.BiomeScanCenterPositionInWorld = _ilSpymPlayer!.biomeLockPosition;
+                settings.BiomeScanCenterPositionInWorld = _ilSpymPlayer!.biomeLock!.recoredPosition!.Value;
                 _ilScanOreFinderData = settings.ScanOreFinderData;
                 settings.ScanOreFinderData = false;
             } else if (_ilOriginalScanPosition.HasValue) {
